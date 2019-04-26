@@ -27,25 +27,6 @@ typedef struct {
 // Global list of all the registered klasses.
 static obj_klass_t *g_klasses = NULL;
 
-// static json_value *obj_fn_default_pos(obj_t *obj, const attribute_t *attr,
-//                                      const json_value *args);
-static json_value *obj_fn_default_name(obj_t *obj, const attribute_t *attr,
-                                       const json_value *args);
-
-// List of default attributes for given names.
-static const attribute_t DEFAULT_ATTRIBUTES[] = {
-    { "visible", TYPE_BOOL},
-    { "name", TYPE_STRING, .fn = obj_fn_default_name,
-      .desc = "Common name for the object." },
-    // { "radec", TYPE_V4, .fn = obj_fn_default_pos,
-    //  .desc = "Cartesian 3d vector of the ra/dec position (ICRS)."},
-    // { "distance", TYPE_DIST, .fn = obj_fn_default_pos,
-    //   .desc = "Distance (AU)." },
-    { "type", TYPE_STRING, MEMBER(obj_t, type),
-      .desc = "Type id string as defined by Simbad."},
-};
-
-
 static obj_t *obj_create_(obj_klass_t *klass, const char *id, obj_t *parent,
                           json_value *args)
 {
@@ -241,31 +222,6 @@ int obj_get_designations(const obj_t *obj, void *user,
     return nb;
 }
 
-static json_value *obj_fn_default_name(obj_t *obj, const attribute_t *attr,
-                                       const json_value *args)
-{
-    char buf[128];
-    return args_value_new(TYPE_STRING, obj_get_name(obj, buf));
-}
-
-/*
-static json_value *obj_fn_default_pos(obj_t *obj, const attribute_t *attr,
-                                      const json_value *args)
-{
-    if (strcmp(attr->name, "distance") == 0) {
-        return args_value_new(TYPE_DIST,
-                obj->pvo[0][3] == 0 ? NAN :
-                vec3_norm(obj->pvo[0]));
-    }
-    // Radec is in local ICRS, i.e. equatorial J2000 observer centered
-    if (strcmp(attr->name, "radec") == 0) {
-        return args_value_new(TYPE_V4, obj->pvo[0]);
-    }
-    assert(false);
-    return NULL;
-}
-*/
-
 // XXX: cleanup this code.
 static json_value *obj_fn_default(obj_t *obj, const attribute_t *attr,
                                   const json_value *args)
@@ -434,36 +390,10 @@ int obj_set_attr(const obj_t *obj, const char *name, ...)
     return 0;
 }
 
-// Setup the default values of an attribute.
-static void init_attribute(attribute_t *attr)
-{
-    int i;
-    if (attr->fn) return;
-    for (i = 0; i < ARRAY_SIZE(DEFAULT_ATTRIBUTES); i++) {
-        if (strcmp(attr->name, DEFAULT_ATTRIBUTES[i].name) == 0) break;
-    }
-    if (i == ARRAY_SIZE(DEFAULT_ATTRIBUTES)) return;
-    attr->desc = attr->desc ?: DEFAULT_ATTRIBUTES[i].desc;
-    attr->type = attr->type ?: DEFAULT_ATTRIBUTES[i].type;
-    if (!attr->member.size) {
-        attr->member = DEFAULT_ATTRIBUTES[i].member;
-        attr->type = attr->type ?: DEFAULT_ATTRIBUTES[i].type;
-        attr->fn = attr->fn ?: DEFAULT_ATTRIBUTES[i].fn;
-    }
-    if (attr->member.size) assert(attr->type);
-}
-
 void obj_register_(obj_klass_t *klass)
 {
-    attribute_t *attr;
     assert(klass->size);
     LL_PREPEND(g_klasses, klass);
-    // Init all the default attributes.
-    if (klass->attributes) {
-        for (attr = &klass->attributes[0]; attr->name; attr++) {
-            init_attribute(attr);
-        }
-    }
 }
 
 static int klass_sort_cmp(void *a, void *b)
