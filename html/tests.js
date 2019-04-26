@@ -219,8 +219,7 @@ var testPositions = function(stel) {
   obs.longitude = -84.39 * stel.D2R;
   obs.latitude = 33.75 * stel.D2R;
   var o = stel.getObj('HIP 11767');
-  o.update(obs);
-  var icrs = o.icrs;
+  var icrs = o.get('pvo', obs)[0];
   var cirs = stel.convertFrame(obs, 'ICRF', 'CIRS', icrs);
   var a_ra  = stel.anp(stel.c2s(icrs)[0]);
   var a_dec = stel.anpm(stel.c2s(icrs)[1]);
