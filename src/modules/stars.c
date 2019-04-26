@@ -180,6 +180,43 @@ static int star_update(obj_t *obj, const observer_t *obs, double dt)
     return 0;
 }
 
+// Return position and velocity in ICRF with origin on observer (AU).
+static int star_get_pv(obj_t *obj, const observer_t *obs,
+                       double pv[2][4])
+{
+    star_data_t *s = &((star_t*)obj)->data;
+    int r;
+    double plx = s->plx, astro_pv[2][3];
+
+    if (isnan(plx)) plx = 0;
+    r = eraStarpv(s->ra, s->de, s->pra, s->pde, plx, 0, astro_pv);
+    if (r & 1) { // At infinity.
+        astrometric_to_apparent(obs, astro_pv[0], true, pv[0]);
+        pv[0][3] = 0.0;
+        pv[1][0] = pv[1][1] = pv[1][2] = 0;
+    } else {
+        astrometric_to_apparent(obs, pv[0], false, pv[0]);
+        pv[0][3] = 1.0;
+        vec3_copy(astro_pv[1], pv[1]);
+        pv[1][3] = 0.0;
+    }
+    return 0;
+}
+
+static int star_get_info(obj_t *obj, const observer_t *obs, int info,
+                         void *out)
+{
+    star_t *star = (star_t*)obj;
+    switch (info) {
+    case INFO_VMAG:
+        *(double*)out = star->data.vmag;
+        return 0;
+    default:
+        return 1;
+    }
+}
+
+
 static void star_render_name(const painter_t *painter, const star_data_t *s,
                              int frame, const double pos[3], double radius,
                              double vmag, double color[3])
@@ -828,6 +865,8 @@ static obj_klass_t star_klass = {
     .id         = "star",
     .init       = star_init,
     .size       = sizeof(star_t),
+    .get_pv     = star_get_pv,
+    .get_info   = star_get_info,
     .update     = star_update,
     .render     = star_render,
     .get_designations = star_get_designations,

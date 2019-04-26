@@ -290,17 +290,18 @@ static void info_widget(obj_t *obj)
     char buf[256], buf1[64], buf2[64];
     double icrs[4], cirs[4], observed[4];
     double v, ra, dec, az, alt;
+    observer_t *obs = core->observer;
 
     if (!obj) return;
     obj_update(obj, core->observer, 0);
     gui_text_unformatted(obj_get_name(obj, buf));
-    if (obj_get_attr(obj, "type", buf1) == 0)
+    if (obj_get_info(obj, obs, INFO_TYPE, buf1) == 0)
         gui_label("TYPE", otype_get_str(buf1));
     gui_separator();
     obj_get_designations(obj, NULL, on_designation);
     gui_separator();
 
-    obj_get_attr(obj, "radec", icrs);
+    obj_get_info(obj, obs, INFO_POS, icrs);
     convert_framev4(NULL, FRAME_ICRF, FRAME_CIRS, icrs, cirs);
     convert_framev4(NULL, FRAME_ICRF, FRAME_OBSERVED, icrs, observed);
     eraC2s(cirs, &ra, &dec);
@@ -308,7 +309,7 @@ static void info_widget(obj_t *obj)
     dec = eraAnpm(dec);
     eraC2s(observed, &az, &alt);
 
-    if (obj_get_attr(obj, "vmag", &v) == 0) {
+    if (obj_get_info(obj, obs, INFO_VMAG, &v) == 0) {
         sprintf(buf, "%f", v);
         gui_label("VMAG", buf);
     }
@@ -321,12 +322,9 @@ static void info_widget(obj_t *obj)
     find_constellation_at(obj->pvo[0], buf);
     gui_label("CST", buf);
 
-    if (obj_has_attr(obj, "phase")) {
-        obj_get_attr(obj, "phase", &v);
-        if (!isnan(v)) {
-            sprintf(buf, "%.0f%%", v * 100);
-            gui_label("PHASE", buf);
-        }
+    if (obj_get_info(obj, obs, INFO_PHASE, &v)) {
+        sprintf(buf, "%.0f%%", v * 100);
+        gui_label("PHASE", buf);
     }
 }
 

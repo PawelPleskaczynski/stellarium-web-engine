@@ -466,6 +466,31 @@ static int planet_update(obj_t *obj, const observer_t *obs, double dt)
     return 0;
 }
 
+static int planet_get_pv(obj_t *obj, const observer_t *obs, double pv[2][4])
+{
+    planet_t *planet = (planet_t*)obj;
+    planet_update_(planet, obs);
+    memcpy(pv, planet->obj.pvo, sizeof(planet->obj.pvo));
+    return 0;
+}
+
+static int planet_get_info(obj_t *obj, const observer_t *obs, int info,
+                           void *out)
+{
+    planet_t *planet = (planet_t*)obj;
+    planet_update_(planet, obs);
+    switch (info) {
+    case INFO_VMAG:
+        *(double*)out = planet->obj.vmag;
+        return 0;
+    case INFO_PHASE:
+        *(double*)out = planet->phase;
+        return 0;
+    default:
+        return 1;
+    }
+}
+
 static void planet_get_designations(
     const obj_t *obj, void *user,
     int (*f)(const obj_t *obj, void *user,
@@ -1177,6 +1202,8 @@ static obj_klass_t planet_klass = {
     .id = "planet",
     .model = "jpl_sso",
     .size = sizeof(planet_t),
+    .get_pv = planet_get_pv,
+    .get_info = planet_get_info,
     .update = planet_update,
     .get_designations = planet_get_designations,
     .attributes = (attribute_t[]) {

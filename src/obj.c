@@ -175,6 +175,42 @@ int obj_render(const obj_t *obj, const painter_t *painter)
         return 0;
 }
 
+int obj_get_pv(obj_t *obj, observer_t *obs, double pv[2][4])
+{
+    assert(obj->klass->get_pv);
+    return obj->klass->get_pv(obj, obs, pv);
+}
+
+int obj_get_info(obj_t *obj, observer_t *obs, int info,
+                 void *out)
+{
+    double pv[2][4];
+
+    switch (info) {
+    case INFO_TYPE:
+        strncpy(out, obj->type, 4);
+        return 0;
+    case INFO_PV:
+        return obj_get_pv(obj, obs, out);
+    case INFO_POS: // First component of the PV info.
+        obj_get_info(obj, obs, INFO_PV, pv);
+        memcpy(out, pv[0], sizeof(pv[0]));
+        return 0;
+    case INFO_DISTANCE:
+        obj_get_pv(obj, obs, pv);
+        *(double*)out = pv[0][3] ? vec3_norm(pv[0]) : NAN;
+        return 0;
+    default:
+        break;
+    }
+
+    if (obj->klass->get_info) {
+        observer_update(obs, true);
+        return obj->klass->get_info(obj, obs, info, out);
+    }
+    return 1;
+}
+
 EMSCRIPTEN_KEEPALIVE
 int obj_update(obj_t *obj, observer_t *obs, double dt)
 {

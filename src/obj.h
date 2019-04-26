@@ -106,6 +106,8 @@ struct obj_klass
     // Various methods to manipulate objects of this class.
     int (*init)(obj_t *obj, json_value *args);
     void (*del)(obj_t *obj);
+    int (*get_pv)(obj_t *obj, const observer_t *obs, double pv[2][4]);
+    int (*get_info)(obj_t *obj, const observer_t *obs, int info, void *out);
     int (*update)(obj_t *obj, const observer_t *obs, double dt);
     int (*render)(const obj_t *obj, const painter_t *painter);
     int (*post_render)(const obj_t *obj, const painter_t *painter);
@@ -115,6 +117,7 @@ struct obj_klass
                            const projection_t *proj,
                            double win_pos[2], double win_size[2],
                            double* win_angle);
+
     int (*on_mouse)(obj_t *obj, int id, int state, double x, double y);
 
     // Find a sky object given an id.
@@ -315,6 +318,10 @@ int obj_render(const obj_t *obj, const painter_t *painter);
  */
 int obj_update(obj_t *obj, observer_t *obs, double dt);
 
+
+int obj_get_pv(obj_t *obj, observer_t *obs, double pv[2][4]);
+
+int obj_get_info(obj_t *obj, observer_t *obs, int info, void *out);
 
 /*
  * Function: obj_get_pos_icrs
