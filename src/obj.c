@@ -491,20 +491,11 @@ obj_klass_t *obj_get_klass_by_name(const char *name)
     return NULL;
 }
 
-// XXX: to remove.
-void obj_get_pos_icrs(obj_t *obj, observer_t *obs, double pos[4])
+void obj_get_pos_observed(obj_t *obj, observer_t *obs, double pos[4])
 {
     double pvo[2][4];
     obj_get_pvo(obj, obs, pvo);
-    vec4_copy(pvo[0], pos);
-}
-
-void obj_get_pos_observed(obj_t *obj, observer_t *obs, double pos[4])
-{
-    double p[4];
-    obj_get_pos_icrs(obj, obs, p);
-    convert_frame(obs, FRAME_ICRF, FRAME_OBSERVED, 0, p, p);
-    vec4_copy(p, pos);
+    convert_frame(obs, FRAME_ICRF, FRAME_OBSERVED, 0, pvo[0], pos);
 }
 
 void obj_get_2d_ellipse(obj_t *obj,  const observer_t *obs,
@@ -512,7 +503,7 @@ void obj_get_2d_ellipse(obj_t *obj,  const observer_t *obs,
                         double win_pos[2], double win_size[2],
                         double* win_angle)
 {
-    double p[4], p2[4];
+    double pvo[2][4], p[4];
     double vmag, s, luminance, radius;
 
     if (obj->klass->get_2d_ellipse) {
@@ -524,10 +515,10 @@ void obj_get_2d_ellipse(obj_t *obj,  const observer_t *obs,
     // Fall back to generic version
 
     // Ellipse center
-    obj_get_pos_icrs(obj, obs, p);
-    vec3_normalize(p, p);
-    convert_frame(obs, FRAME_ICRF, FRAME_VIEW, true, p, p2);
-    project(proj, PROJ_TO_WINDOW_SPACE, 2, p2, win_pos);
+    obj_get_pvo(obj, obs, pvo);
+    vec3_normalize(pvo[0], pvo[0]);
+    convert_frame(obs, FRAME_ICRF, FRAME_VIEW, true, pvo[0], p);
+    project(proj, PROJ_TO_WINDOW_SPACE, 2, p, win_pos);
 
     // Empirical formula to compute the pointer size.
     obj_get_info(obj, obs, INFO_VMAG, &vmag);
