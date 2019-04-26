@@ -15,6 +15,7 @@ EMSCRIPTEN_KEEPALIVE
 int module_update(obj_t *module, observer_t *obs, double dt)
 {
     assert(!obs || obs->hash != 0);
+    assert(module->klass->flags & OBJ_MODULE);
     if (!module->klass->update) return 0;
     observer_update(obs, true);
     assert(obs->astrom.em);
