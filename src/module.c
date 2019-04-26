@@ -34,6 +34,7 @@ int module_list_objs(const obj_t *obj, observer_t *obs,
                      int (*f)(void *user, obj_t *obj))
 {
     obj_t *child;
+    double vmag;
 
     if (obj->klass->list)
         return obj->klass->list(obj, obs, max_mag, hint, user, f);
@@ -41,8 +42,9 @@ int module_list_objs(const obj_t *obj, observer_t *obs,
 
     // Default for listable modules: list all the children.
     DL_FOREACH(obj->children, child) {
-        obj_update(child, obs, 0);
-        if (child->vmag > max_mag) continue;
+        if (obj_get_info(child, obs, INFO_VMAG, &vmag) == 0 &&
+                vmag > max_mag)
+            continue;
         if (f && f(user, child)) break;
     }
     return 0;

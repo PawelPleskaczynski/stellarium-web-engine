@@ -37,6 +37,7 @@ typedef struct {
     char        desig[24];  // Principal designation.
     int         mpl_number; // Minor planet number if one has been assigned.
     bool        on_screen;  // Set once the object has been visible.
+    float       vmag;
 } mplanet_t;
 
 /*
@@ -217,8 +218,21 @@ static int mplanet_update(obj_t *obj, const observer_t *obs, double dt)
 
     // Compute vmag using algo from
     // http://www.britastro.org/asteroids/dymock4.pdf
-    mp->obj.vmag = compute_magnitude(mp->h, mp->g, pvh[0], pvo[0]);
+    mp->vmag = compute_magnitude(mp->h, mp->g, pvh[0], pvo[0]);
     return 0;
+}
+
+static int mplanet_get_info(obj_t *obj, const observer_t *obs, int info,
+                            void *out)
+{
+    mplanet_t *mp = (mplanet_t*)obj;
+    mplanet_update(obj, obs, 0);
+    switch (info) {
+    case INFO_VMAG:
+        *(double*)out = mp->vmag;
+        return 0;
+    }
+    return 1;
 }
 
 static int mplanet_render(const obj_t *obj, const painter_t *painter)
@@ -229,7 +243,7 @@ static int mplanet_render(const obj_t *obj, const painter_t *painter)
     point_t point;
     const bool selected = core->selection && obj->oid == core->selection->oid;
 
-    vmag = mplanet->obj.vmag;
+    vmag = mplanet->vmag;
     if (vmag > painter->stars_limit_mag) return 0;
     obj_get_pos_icrs(obj, painter->obs, pos);
     if (!painter_project(painter, FRAME_ICRF, pos, false, true, win_pos))
@@ -339,6 +353,7 @@ static obj_klass_t mplanet_klass = {
     .model      = "mpc_asteroid",
     .size       = sizeof(mplanet_t),
     .init       = mplanet_init,
+    .get_info   = mplanet_get_info,
     .update     = mplanet_update,
     .render     = mplanet_render,
     .get_designations = mplanet_get_designations,

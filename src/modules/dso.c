@@ -120,7 +120,6 @@ static int dso_update(obj_t *obj, const observer_t *obs, double dt)
     astrometric_to_apparent(obs, dso->data.bounding_cap, true, obj->pvo[0]);
     obj->pvo[0][3] = 0.0;
     assert(fabs(vec3_norm2(obj->pvo[0]) - 1.0) <= 0.000001);
-    obj->vmag = dso->data.vmag;
     return 0;
 }
 
@@ -131,7 +130,6 @@ static dso_t *dso_create(const dso_data_t *data)
     dso->data = *data;
     memcpy(&dso->obj.type, data->type, 4);
     dso->obj.oid = data->oid;
-    dso->obj.vmag = data->vmag;
     dso_update(&dso->obj, core->observer, 0);
     return dso;
 }

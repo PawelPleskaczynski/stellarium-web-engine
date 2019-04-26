@@ -171,7 +171,6 @@ static int star_update(obj_t *obj, const observer_t *obs, double dt)
     assert(!isnan(obj->pvo[0][0]));
 
     obj->pvo[0][3] = 0.0;
-    obj->vmag = star->data.vmag;
     // We need to renormalize
     vec3_normalize(obj->pvo[0], obj->pvo[0]);
     // Set speed to 0.
@@ -922,7 +921,7 @@ static void test_create_from_json(void)
     star = obj_create_str("star", NULL, NULL, data);
     assert(star);
     obj_update(star, core->observer, 0);
-    obj_get_attr(star, "vmag", &vmag);
+    obj_get_info(star, core->observer, INFO_VMAG, &vmag);
     assert(fabs(vmag - 5.153) < 0.0001);
     obj_release(star);
 }

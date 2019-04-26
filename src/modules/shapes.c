@@ -127,7 +127,6 @@ static int circle_update(obj_t *obj, const observer_t *obs, double dt)
                   obj->pvo[0]);
     obj->pvo[0][3] = 0.0;
     assert(fabs(vec3_norm2(obj->pvo[0]) - 1.0) <= 0.000001);
-    obj->vmag = 99;
     return 0;
 }
 

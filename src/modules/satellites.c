@@ -39,6 +39,7 @@ typedef struct satellite {
     int number;
     double stdmag; // Taken from the qsmag data.
     double pvg[3];
+    double vmag;
 } satellite_t;
 
 // Module class.
@@ -281,7 +282,7 @@ static int satellite_init(obj_t *obj, json_value *args)
     double startmfe, stopmfe, deltamin;
     int norad_num = 0;
 
-    sat->obj.vmag = SATELLITE_DEFAULT_MAG;
+    sat->vmag = SATELLITE_DEFAULT_MAG;
     model = json_get_attr(args, "model_data", json_object);
     if (model) {
         norad_num = json_get_attr_i(model, "norad_num", 0);
@@ -321,7 +322,7 @@ static int satellite_update(obj_t *obj, const observer_t *obs, double dt)
     obj->pvo[0][3] = 1.0; // AU
     obj->pvo[1][3] = 1.0;
 
-    sat->obj.vmag = satellite_compute_vmag(sat, obs);
+    sat->vmag = satellite_compute_vmag(sat, obs);
     return 0;
 }
 
@@ -338,7 +339,7 @@ static int satellite_render(const obj_t *obj, const painter_t *painter_)
     satellite_t *sat = (satellite_t*)obj;
     const bool selected = core->selection && obj->oid == core->selection->oid;
 
-    vmag = obj->vmag;
+    vmag = sat->vmag;
     if (vmag > painter.stars_limit_mag) return 0;
 
     if (!painter_project(&painter, FRAME_ICRF, obj->pvo[0], false, true, p_win))

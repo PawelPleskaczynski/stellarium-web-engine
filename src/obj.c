@@ -39,8 +39,6 @@ static const attribute_t DEFAULT_ATTRIBUTES[] = {
       .desc = "Common name for the object." },
     { "radec", TYPE_V4, .fn = obj_fn_default_pos,
       .desc = "Cartesian 3d vector of the ra/dec position (ICRS)."},
-    { "vmag", TYPE_MAG, MEMBER(obj_t, vmag),
-      .desc = "Visual magnitude"},
     { "distance", TYPE_DIST, .fn = obj_fn_default_pos,
       .desc = "Distance (AU)." },
     { "type", TYPE_STRING, MEMBER(obj_t, type),
@@ -523,7 +521,7 @@ void obj_get_2d_ellipse(obj_t *obj,  const observer_t *obs,
                         double* win_angle)
 {
     double p[4], p2[4];
-    double s, luminance, radius;
+    double vmag, s, luminance, radius;
 
     if (obj->klass->get_2d_ellipse) {
         obj->klass->get_2d_ellipse(obj, obs, proj,
@@ -540,7 +538,8 @@ void obj_get_2d_ellipse(obj_t *obj,  const observer_t *obs,
     project(proj, PROJ_TO_WINDOW_SPACE, 2, p2, win_pos);
 
     // Empirical formula to compute the pointer size.
-    core_get_point_for_mag(obj->vmag, &s, &luminance);
+    obj_get_info(obj, obs, INFO_VMAG, &vmag);
+    core_get_point_for_mag(vmag, &s, &luminance);
     s *= 2;
 
     if (obj_has_attr(obj, "radius")) {

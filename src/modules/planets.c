@@ -37,9 +37,10 @@ struct planet {
     double last_full_update; // Time of last full orbit update (UT1)
     double last_full_pvh[2][3]; // equ, J2000.0, AU heliocentric pos and speed.
 
-    // Precomputed values.
+    // Cached values.
     double      pvh[2][3];   // equ, J2000.0, AU heliocentric pos and speed.
     double      hpos[3];     // ecl, heliocentric pos J2000.0
+    double      vmag;
     double      phase;
     double      radius;     // Apparent disk radius (rad)
     double      mass;       // kg (0 if unknown).
@@ -218,8 +219,8 @@ static int sun_update(planet_t *planet, const observer_t *obs)
     // observer's distance
     dist_pc = vec3_norm(obs->earth_pvh[0]) * (M_PI / 648000);
     eclipse_factor = max(compute_sun_eclipse_factor(planet, obs), 0.000128);
-    planet->obj.vmag = 4.83 + 5.0 * (log10(dist_pc) - 1.0) -
-                       2.5 * (log10(eclipse_factor));
+    planet->vmag = 4.83 + 5.0 * (log10(dist_pc) - 1.0) -
+                   2.5 * (log10(eclipse_factor));
     return 0;
 }
 
@@ -269,7 +270,7 @@ static int moon_update(planet_t *planet, const observer_t *obs)
     // This is based on the algo of pyephem.
     // XXX: move into 'algos'.
     el = eraSepp(planet->obj.pvo[0], obs->sun_pvo[0]); // Elongation.
-    planet->obj.vmag = -12.7 +
+    planet->vmag = -12.7 +
         2.5 * (log10(M_PI) - log10(M_PI / 2.0 * (1.0 + 1.e-6 - cos(el)))) +
         5.0 * log10(dist / .0025);
 
@@ -307,7 +308,7 @@ static int plan94_update(planet_t *planet, const observer_t *obs)
     rho = vec3_norm(planet->pvh[0]);
     rp = vec3_norm(planet->obj.pvo[0]);
     vis = VIS_ELEMENTS[n];
-    planet->obj.vmag = vis[1] + 5 * log10(rho * rp) +
+    planet->vmag = vis[1] + 5 * log10(rho * rp) +
                         i * (vis[2] + i * (vis[3] + i * vis[4]));
     return 0;
 }
@@ -342,7 +343,7 @@ static int l12_update(planet_t *planet, const observer_t *obs)
     rp = vec3_norm(planet->obj.pvo[0]);
     mag = -1.0 / 0.2 * log10(sqrt(planet->albedo) *
             2.0 * planet->radius_m / 1000.0 / 1329.0);
-    planet->obj.vmag = mag + 5 * log10(rho * rp);
+    planet->vmag = mag + 5 * log10(rho * rp);
     return 0;
 }
 
@@ -395,7 +396,7 @@ static int kepler_update(planet_t *planet, const observer_t *obs)
     rp = vec3_norm(planet->obj.pvo[0]);
     double mag = -1.0 / 0.2 * log10(sqrt(planet->albedo) *
             2.0 * planet->radius_m / 1000.0 / 1329.0);
-    planet->obj.vmag = mag + 5 * log10(rho * rp);
+    planet->vmag = mag + 5 * log10(rho * rp);
     return 0;
 }
 
@@ -449,7 +450,7 @@ static int planet_update_(planet_t *planet, const observer_t *obs)
                  earth_hlon, vec3_norm(obs->earth_pvh[0]),
                  obs->ut1 + DJM0, &et, &st);
         set = sin(fabs(et));
-        planet->obj.vmag += (-2.60 + 1.25 * set) * set;
+        planet->vmag += (-2.60 + 1.25 * set) * set;
     }
 
     planet->radius = planet->radius_m / DAU /
@@ -481,7 +482,7 @@ static int planet_get_info(obj_t *obj, const observer_t *obs, int info,
     planet_update_(planet, obs);
     switch (info) {
     case INFO_VMAG:
-        *(double*)out = planet->obj.vmag;
+        *(double*)out = planet->vmag;
         return 0;
     case INFO_PHASE:
         *(double*)out = planet->phase;
@@ -828,7 +829,7 @@ static void planet_render_label(
                   true, s + 4, FONT_SIZE_BASE,
                   selected ? white : label_color, 0, LABEL_AROUND,
                   selected ? TEXT_BOLD : 0,
-                  -planet->obj.vmag, planet->obj.oid);
+                  -planet->vmag, planet->obj.oid);
 }
 
 static void planet_render(const planet_t *planet, const painter_t *painter_)
@@ -851,7 +852,7 @@ static void planet_render(const planet_t *planet, const painter_t *painter_)
     double cap[4];
     const hips_t *hips;
 
-    vmag = planet->obj.vmag;
+    vmag = planet->vmag;
     if (planet->id == EARTH) return;
 
     if (planet->id != MOON && vmag > painter.stars_limit_mag) return;
@@ -1058,7 +1059,7 @@ static int planets_ini_handler(void* user, const char* section,
     }
     if (strcmp(attr, "vmag") == 0) {
         sscanf(value, "%f", &v);
-        planet->obj.vmag = v;
+        planet->vmag = v;
     }
     if (strcmp(attr, "color") == 0) {
         sscanf(value, "%lf, %lf, %lf",

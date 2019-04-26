@@ -436,6 +436,7 @@ static int render_lines(const constellation_t *con, const painter_t *_painter)
     double p[3], label_cap[4];
     double pixel_angular_resolution, label_pixel_length;
     constellations_t *cons = (constellations_t*)con->obj.parent;
+    observer_t *obs = painter.obs;
 
     if (painter.color[3] == 0.0) return 0;
     vec4_set(lines_color, 0.2, 0.4, 0.7, 0.5);
@@ -448,8 +449,8 @@ static int render_lines(const constellation_t *con, const painter_t *_painter)
         lines[i][3] = 0; // To infinity.
     }
     for (i = 0; i < con->count; i += 2) {
-        mag[0] = con->stars[i + 0]->vmag;
-        mag[1] = con->stars[i + 1]->vmag;
+        obj_get_info(con->stars[i + 0], obs, INFO_VMAG, &mag[0]);
+        obj_get_info(con->stars[i + 1], obs, INFO_VMAG, &mag[0]);
         core_get_point_for_mag(mag[0], &radius[0], NULL);
         core_get_point_for_mag(mag[1], &radius[1], NULL);
         radius[0] = core_get_apparent_angle_for_point(painter.proj, radius[0]);

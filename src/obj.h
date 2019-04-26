@@ -197,7 +197,7 @@ struct obj
     obj_t       *children, *prev, *next;
 
     // Must be up to date after a call to obj_update.
-    double      vmag;
+    // double      vmag;
     // Barycentric position/velocity in ICRF as seen from observer
     double      pvo[2][4];
 };

@@ -33,6 +33,7 @@ typedef struct {
     orbit_t     orbit;
     char        name[64]; // e.g 'C/1995 O1 (Hale-Bopp)'
     bool        on_screen;  // Set once the object has been visible.
+    double      vmag;
 } comet_t;
 
 /*
@@ -157,9 +158,22 @@ static int comet_update(obj_t *obj, const observer_t *obs, double dt)
     // (http://www.clearskyinstitute.com/xephem/help/xephem.html)
     sr = vec3_norm(ph[0]);
     or = vec3_norm(obj->pvo[0]);
-    comet->obj.vmag = comet->amag + 5 * log10(or) +
+    comet->vmag = comet->amag + 5 * log10(or) +
                       2.5 * comet->slope_param * log10(sr);
     return 0;
+}
+
+static int comet_get_info(obj_t *obj, const observer_t *obs, int info,
+                          void *out)
+{
+    comet_t *comet = (comet_t*)obj;
+    comet_update(obj, obs, 0);
+    switch (info) {
+    case INFO_VMAG:
+        *(double*)out = comet->vmag;
+        return 0;
+    }
+    return 1;
 }
 
 void comet_get_designations(
@@ -178,7 +192,7 @@ static int comet_render(const obj_t *obj, const painter_t *painter)
     point_t point;
     double label_color[4] = RGBA(255, 124, 124, 255);
     const bool selected = core->selection && obj->oid == core->selection->oid;
-    vmag = comet->obj.vmag;
+    vmag = comet->vmag;
 
     if (vmag > painter->stars_limit_mag) return 0;
     if (isnan(obj->pvo[0][0])) return 0; // For the moment!
@@ -325,6 +339,7 @@ static obj_t *comets_get(const obj_t *obj, const char *id, int flags)
 static obj_klass_t comet_klass = {
     .id         = "mpc_comet",
     .size       = sizeof(comet_t),
+    .get_info   = comet_get_info,
     .update     = comet_update,
     .render     = comet_render,
     .get_designations = comet_get_designations,
