@@ -33,7 +33,9 @@ typedef struct {
     orbit_t     orbit;
     char        name[64]; // e.g 'C/1995 O1 (Hale-Bopp)'
     bool        on_screen;  // Set once the object has been visible.
+
     double      vmag;
+    double      pvo[2][4];
 } comet_t;
 
 /*
@@ -95,7 +97,7 @@ static void load_data(comets_t *comets, const char *data)
         strncpy(comet->obj.type, orbit_type_to_otype(orbit_type), 4);
         strcpy(comet->name, desgn);
         comet->obj.oid = oid_create("Com", line_idx);
-        comet->obj.pvo[0][0] = NAN;
+        comet->pvo[0][0] = NAN;
     }
 
     if (nb_err) {
@@ -148,16 +150,16 @@ static int comet_update(obj_t *obj, const observer_t *obs, double dt)
 
     vec3_set(ph[1], 0, 0, 0);
     position_to_apparent(obs, ORIGIN_HELIOCENTRIC, false, ph, pv);
-    vec3_copy(pv[0], obj->pvo[0]);
-    obj->pvo[0][3] = 1;
-    vec3_copy(pv[1], obj->pvo[1]);
-    obj->pvo[1][3] = 0;
+    vec3_copy(pv[0], comet->pvo[0]);
+    comet->pvo[0][3] = 1;
+    vec3_copy(pv[1], comet->pvo[1]);
+    comet->pvo[1][3] = 0;
 
     // Compute vmag.
     // We use the g,k model: m = g + 5*log10(D) + 2.5*k*log10(r)
     // (http://www.clearskyinstitute.com/xephem/help/xephem.html)
     sr = vec3_norm(ph[0]);
-    or = vec3_norm(obj->pvo[0]);
+    or = vec3_norm(comet->pvo[0]);
     comet->vmag = comet->amag + 5 * log10(or) +
                       2.5 * comet->slope_param * log10(sr);
     return 0;
@@ -195,8 +197,8 @@ static int comet_render(const obj_t *obj, const painter_t *painter)
     vmag = comet->vmag;
 
     if (vmag > painter->stars_limit_mag) return 0;
-    if (isnan(obj->pvo[0][0])) return 0; // For the moment!
-    if (!painter_project(painter, FRAME_ICRF, obj->pvo[0], false, true,
+    if (isnan(comet->pvo[0][0])) return 0; // For the moment!
+    if (!painter_project(painter, FRAME_ICRF, comet->pvo[0], false, true,
                          win_pos))
         return 0;
 
@@ -215,7 +217,7 @@ static int comet_render(const obj_t *obj, const painter_t *painter)
     if (*comet->name && (selected || vmag < painter->hints_limit_mag)) {
         if (selected)
             vec4_set(label_color, 1, 1, 1, 1);
-        labels_add_3d(comet->name, FRAME_ICRF, obj->pvo[0], false, size,
+        labels_add_3d(comet->name, FRAME_ICRF, comet->pvo[0], false, size,
             FONT_SIZE_BASE, label_color, 0, LABEL_AROUND,
             selected ? TEXT_BOLD : 0,
             0, obj->oid);

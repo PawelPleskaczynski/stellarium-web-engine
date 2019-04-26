@@ -52,6 +52,8 @@ typedef struct constellation {
     int         error; // Set if we couldn't parse the stars.
     double last_update; // Last update time in TT
     double bounding_cap[4]; // Bounding cap in ICRS
+
+    double pvo[2][4];
 } constellation_t;
 
 /*
@@ -135,6 +137,7 @@ static int compute_img_mat(const anchor_t anchors[static 3], double mat[3][3])
     double pos[3][3];
     double uvs[3][3];
     double tmp[3][3];
+    double pvo[2][4];
     obj_t *star;
     for (i = 0; i < 3; i++) {
         vec2_copy(anchors[i].uv, uvs[i]);
@@ -148,7 +151,8 @@ static int compute_img_mat(const anchor_t anchors[static 3], double mat[3][3])
         // XXX: instead we should get the star g_ra and g_dec, since they
         // shouldn't change.
         obj_update(star, core->observer, 0);
-        vec3_normalize(star->pvo[0], pos[i]);
+        obj_get_pvo(star, core->observer, pvo);
+        vec3_normalize(pvo[0], pos[i]);
         obj_release(star);
     }
     // Compute the transformation matrix M from uv to ICRS:
@@ -228,7 +232,7 @@ static int constellation_update(obj_t *obj, const observer_t *obs, double dt)
     // The position of a constellation is its middle point.
     constellation_t *con = (constellation_t*)obj;
     constellations_t *cons = (constellations_t*)obj->parent;
-    double pos[4] = {0, 0, 0, 0}, max_cosdist, d;
+    double pvo[2][4], pos[4] = {0, 0, 0, 0}, max_cosdist, d;
     int i, err;
     if (con->error) return 0;
     // Optimization: don't update invisible constellation.
@@ -250,18 +254,20 @@ static int constellation_update(obj_t *obj, const observer_t *obs, double dt)
 
     for (i = 0; i < con->count; i++) {
         obj_update(con->stars[i], obs, 0);
-        vec3_add(pos, con->stars[i]->pvo[0], pos);
+        obj_get_pvo(con->stars[i], obs, pvo);
+        vec3_add(pos, pvo[0], pos);
     }
     vec3_normalize(pos, pos);
-    vec3_copy(pos, obj->pvo[0]);
-    obj->pvo[0][3] = 0; // At infinity.
-    vec4_set(obj->pvo[1], 0, 0, 0, 0);
+    vec3_copy(pos, con->pvo[0]);
+    con->pvo[0][3] = 0; // At infinity.
+    vec4_set(con->pvo[1], 0, 0, 0, 0);
 
     // Compute bounding cap
     vec3_copy(pos, con->bounding_cap);
     max_cosdist = 1.0;
     for (i = 0; i < con->count; i++) {
-        d = vec3_dot(con->bounding_cap, con->stars[i]->pvo[0]);
+        obj_get_pvo(con->stars[i], obs, pvo);
+        d = vec3_dot(con->bounding_cap, pvo[0]);
         max_cosdist = min(max_cosdist, d);
     }
     // Constellation caps can't be smaller than 8 deg radius to account for
@@ -430,7 +436,7 @@ static int render_lines(const constellation_t *con, const painter_t *_painter)
     int i;
     double (*lines)[4];
     double lines_color[4], names_color[4];
-    double win_pos[2];
+    double pvo[2][4], win_pos[2];
     double mag[2], radius[2];
     const char *label;
     double p[3], label_cap[4];
@@ -445,7 +451,8 @@ static int render_lines(const constellation_t *con, const painter_t *_painter)
 
     lines = calloc(con->count, sizeof(*lines));
     for (i = 0; i < con->count; i++) {
-        vec3_copy(con->stars[i]->pvo[0], lines[i]);
+        obj_get_pvo(con->stars[i], obs, pvo);
+        vec3_copy(pvo[0], lines[i]);
         lines[i][3] = 0; // To infinity.
     }
     for (i = 0; i < con->count; i += 2) {

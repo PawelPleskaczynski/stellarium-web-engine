@@ -116,11 +116,14 @@ static uint64_t make_oid(uint64_t nuniq, int index)
 
 static int dso_update(obj_t *obj, const observer_t *obs, double dt)
 {
+    return 0;
+    /*
     dso_t *dso = (dso_t*)obj;
     astrometric_to_apparent(obs, dso->data.bounding_cap, true, obj->pvo[0]);
     obj->pvo[0][3] = 0.0;
     assert(fabs(vec3_norm2(obj->pvo[0]) - 1.0) <= 0.000001);
     return 0;
+    */
 }
 
 static dso_t *dso_create(const dso_data_t *data)

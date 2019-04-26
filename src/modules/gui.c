@@ -319,7 +319,7 @@ static void info_widget(obj_t *obj)
     sprintf(buf, "%s/%s", format_dangle(buf1, az), format_dangle(buf2, alt));
     gui_label("AZ/AL", buf);
 
-    find_constellation_at(obj->pvo[0], buf);
+    find_constellation_at(icrs, buf);
     gui_label("CST", buf);
 
     if (obj_get_info(obj, obs, INFO_PHASE, &v)) {

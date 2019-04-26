@@ -160,6 +160,7 @@ static int star_init(obj_t *obj, json_value *args)
     return 0;
 }
 
+/*
 static int star_update(obj_t *obj, const observer_t *obs, double dt)
 {
     star_t *star = (star_t*)obj;
@@ -178,6 +179,7 @@ static int star_update(obj_t *obj, const observer_t *obs, double dt)
     astrometric_to_apparent(obs, obj->pvo[0], true, obj->pvo[0]);
     return 0;
 }
+*/
 
 // Return position and velocity in ICRF with origin on observer (AU).
 static int star_get_pvo(obj_t *obj, const observer_t *obs,
@@ -190,13 +192,14 @@ static int star_get_pvo(obj_t *obj, const observer_t *obs,
     if (isnan(plx)) plx = 0;
     r = eraStarpv(s->ra, s->de, s->pra, s->pde, plx, 0, astro_pv);
     if (r & 1) { // At infinity.
+        vec3_normalize(astro_pv[0], astro_pv[0]);
         astrometric_to_apparent(obs, astro_pv[0], true, pvo[0]);
         pvo[0][3] = 0.0;
         pvo[1][0] = pvo[1][1] = pvo[1][2] = pvo[1][3] = 0;
     } else {
-        astrometric_to_apparent(obs, pvo[0], false, pvo[0]);
+        astrometric_to_apparent(obs, astro_pv[0], false, pvo[0]);
         pvo[0][3] = 1.0;
-        vec3_copy(astro_pv[1], pvo[1]);
+        vec3_copy(astro_pv[1], pvo[1]); // XXX probably not correct.
         pvo[1][3] = 0.0;
     }
     return 0;
@@ -285,13 +288,14 @@ static int star_render(const obj_t *obj, const painter_t *painter_)
     // XXX: the code is almost the same as the inner loop in stars_render.
     star_t *star = (star_t*)obj;
     const star_data_t *s = &star->data;
-    double p[2], size, luminance;
+    double pvo[2][4], p[2], size, luminance;
     double color[3];
     painter_t painter = *painter_;
     point_t point;
     const bool selected = core->selection && obj->oid == core->selection->oid;
 
-    if (!painter_project(painter_, FRAME_ICRF, obj->pvo[0], true, true, p))
+    obj_get_pvo(obj, painter.obs, pvo);
+    if (!painter_project(painter_, FRAME_ICRF, pvo[0], true, true, p))
         return 0;
 
     core_get_point_for_mag(s->vmag, &size, &luminance);
@@ -307,7 +311,7 @@ static int star_render(const obj_t *obj, const painter_t *painter_)
     paint_2d_points(&painter, 1, &point);
 
     if (selected || (s->vmag <= painter.hints_limit_mag - 4.0)) {
-        star_render_name(&painter, s, FRAME_ICRF, obj->pvo[0], size,
+        star_render_name(&painter, s, FRAME_ICRF, pvo[0], size,
                 s->vmag, color);
     }
     return 0;
@@ -354,7 +358,7 @@ static star_t *star_create(const star_data_t *data)
     strcpy(star->obj.type, "*");
     star->data = *data;
     star->obj.oid = star->data.oid;
-    star_update(&star->obj, core->observer, 0);
+    // star_update(&star->obj, core->observer, 0);
     return star;
 }
 
@@ -866,7 +870,7 @@ static obj_klass_t star_klass = {
     .size       = sizeof(star_t),
     .get_pvo    = star_get_pvo,
     .get_info   = star_get_info,
-    .update     = star_update,
+    // .update     = star_update,
     .render     = star_render,
     .get_designations = star_get_designations,
     .attributes = (attribute_t[]) {

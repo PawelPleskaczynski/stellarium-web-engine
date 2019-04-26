@@ -37,7 +37,9 @@ typedef struct {
     char        desig[24];  // Principal designation.
     int         mpl_number; // Minor planet number if one has been assigned.
     bool        on_screen;  // Set once the object has been visible.
+
     float       vmag;
+    double      pvo[2][4];
 } mplanet_t;
 
 /*
@@ -211,10 +213,10 @@ static int mplanet_update(obj_t *obj, const observer_t *obs, double dt)
     mat3_mul_vec3(obs->re2i, pvh[0], pvh[0]);
     mat3_mul_vec3(obs->re2i, pvh[1], pvh[1]);
     position_to_apparent(obs, ORIGIN_HELIOCENTRIC, false, pvh, pvo);
-    vec3_copy(pvo[0], obj->pvo[0]);
-    vec3_copy(pvo[1], obj->pvo[1]);
-    obj->pvo[0][3] = 1.0; // AU unit.
-    obj->pvo[1][3] = 1.0;
+    vec3_copy(pvo[0], mp->pvo[0]);
+    vec3_copy(pvo[1], mp->pvo[1]);
+    mp->pvo[0][3] = 1.0; // AU unit.
+    mp->pvo[1][3] = 1.0;
 
     // Compute vmag using algo from
     // http://www.britastro.org/asteroids/dymock4.pdf

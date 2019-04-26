@@ -27,8 +27,8 @@ typedef struct {
 // Global list of all the registered klasses.
 static obj_klass_t *g_klasses = NULL;
 
-static json_value *obj_fn_default_pos(obj_t *obj, const attribute_t *attr,
-                                      const json_value *args);
+// static json_value *obj_fn_default_pos(obj_t *obj, const attribute_t *attr,
+//                                      const json_value *args);
 static json_value *obj_fn_default_name(obj_t *obj, const attribute_t *attr,
                                        const json_value *args);
 
@@ -37,10 +37,10 @@ static const attribute_t DEFAULT_ATTRIBUTES[] = {
     { "visible", TYPE_BOOL},
     { "name", TYPE_STRING, .fn = obj_fn_default_name,
       .desc = "Common name for the object." },
-    { "radec", TYPE_V4, .fn = obj_fn_default_pos,
-      .desc = "Cartesian 3d vector of the ra/dec position (ICRS)."},
-    { "distance", TYPE_DIST, .fn = obj_fn_default_pos,
-      .desc = "Distance (AU)." },
+    // { "radec", TYPE_V4, .fn = obj_fn_default_pos,
+    //  .desc = "Cartesian 3d vector of the ra/dec position (ICRS)."},
+    // { "distance", TYPE_DIST, .fn = obj_fn_default_pos,
+    //   .desc = "Distance (AU)." },
     { "type", TYPE_STRING, MEMBER(obj_t, type),
       .desc = "Type id string as defined by Simbad."},
 };
@@ -260,6 +260,7 @@ static json_value *obj_fn_default_name(obj_t *obj, const attribute_t *attr,
     return args_value_new(TYPE_STRING, obj_get_name(obj, buf));
 }
 
+/*
 static json_value *obj_fn_default_pos(obj_t *obj, const attribute_t *attr,
                                       const json_value *args)
 {
@@ -275,6 +276,7 @@ static json_value *obj_fn_default_pos(obj_t *obj, const attribute_t *attr,
     assert(false);
     return NULL;
 }
+*/
 
 // XXX: cleanup this code.
 static json_value *obj_fn_default(obj_t *obj, const attribute_t *attr,
@@ -501,10 +503,13 @@ obj_klass_t *obj_get_klass_by_name(const char *name)
     return NULL;
 }
 
+// XXX: to remove.
 void obj_get_pos_icrs(obj_t *obj, observer_t *obs, double pos[4])
 {
+    double pvo[2][4];
     obj_update(obj, obs, 0);
-    vec4_copy(obj->pvo[0], pos);
+    obj_get_pvo(obj, obs, pvo);
+    vec4_copy(pvo[0], pos);
 }
 
 void obj_get_pos_observed(obj_t *obj, observer_t *obs, double pos[4])

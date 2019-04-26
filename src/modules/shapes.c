@@ -119,6 +119,7 @@ static int circle_render(const obj_t *obj, const painter_t *painter_)
     return 0;
 }
 
+/*
 static int circle_update(obj_t *obj, const observer_t *obs, double dt)
 {
     circle_t *circle = (circle_t*)obj;
@@ -129,13 +130,27 @@ static int circle_update(obj_t *obj, const observer_t *obs, double dt)
     assert(fabs(vec3_norm2(obj->pvo[0]) - 1.0) <= 0.000001);
     return 0;
 }
+*/
+
+static int circle_get_pvo(obj_t *obj, const observer_t *obs,
+                          double pvo[2][4])
+{
+    circle_t *circle = (circle_t*)obj;
+    vec3_normalize(circle->pos, pvo[0]);
+    convert_frame(obs, circle->frame, FRAME_ICRF, true, pvo[0], pvo[0]);
+    pvo[0][3] = 0.0;
+    assert(fabs(vec3_norm2(pvo[0]) - 1.0) <= 0.000001);
+    vec4_set(pvo[1], 0, 0, 0, 0);
+    return 0;
+}
 
 static obj_klass_t circle_klass = {
     .id         = "circle",
     .size       = sizeof(circle_t),
     .init       = circle_init,
     .render     = circle_render,
-    .update     = circle_update,
+    .get_pvo    = circle_get_pvo,
+    // .update     = circle_update,
     .get_2d_ellipse = circle_get_2d_ellipse,
     .attributes = (attribute_t[]) {
         PROPERTY(radec),

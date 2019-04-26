@@ -38,7 +38,8 @@ typedef struct satellite {
     sgp4_elsetrec_t *elsetrec; // Orbit elements.
     int number;
     double stdmag; // Taken from the qsmag data.
-    double pvg[3];
+    double pvg[3]; // XXX: rename that.
+    double pvo[2][4];
     double vmag;
 } satellite_t;
 
@@ -249,7 +250,7 @@ static double satellite_compute_vmag(const satellite_t *sat,
     double observed[3];
 
     convert_frame(obs, FRAME_ICRF, FRAME_OBSERVED, false,
-                        sat->obj.pvo[0], observed);
+                        sat->pvo[0], observed);
     if (observed[2] < 0.0) return 99; // Below horizon.
     illumination = satellite_compute_earth_shadow(sat, obs);
     if (illumination == 0.0) {
@@ -267,8 +268,8 @@ static double satellite_compute_vmag(const satellite_t *sat,
     //                  [ 0 <= fracil <= 1 ]
     // (https://www.prismnet.com/~mmccants/tles/mccdesc.html)
 
-    range = vec3_norm(sat->obj.pvo[0]) * DAU / 1000; // Distance in km.
-    elong = eraSepp(obs->sun_pvo[0], sat->obj.pvo[0]);
+    range = vec3_norm(sat->pvo[0]) * DAU / 1000; // Distance in km.
+    elong = eraSepp(obs->sun_pvo[0], sat->pvo[0]);
     fracil = 0.5 * (1. + cos(elong));
     return sat->stdmag - 15.75 + 2.5 * log10(range * range / fracil);
 }
@@ -317,10 +318,10 @@ static int satellite_update(obj_t *obj, const observer_t *obs, double dt)
     vec3_copy(pv[0], sat->pvg);
 
     position_to_apparent(obs, ORIGIN_GEOCENTRIC, false, pv, pv);
-    vec3_copy(pv[0], obj->pvo[0]);
-    vec3_copy(pv[1], obj->pvo[1]);
-    obj->pvo[0][3] = 1.0; // AU
-    obj->pvo[1][3] = 1.0;
+    vec3_copy(pv[0], sat->pvo[0]);
+    vec3_copy(pv[1], sat->pvo[1]);
+    sat->pvo[0][3] = 1.0; // AU
+    sat->pvo[1][3] = 0.0;
 
     sat->vmag = satellite_compute_vmag(sat, obs);
     return 0;
@@ -342,7 +343,7 @@ static int satellite_render(const obj_t *obj, const painter_t *painter_)
     vmag = sat->vmag;
     if (vmag > painter.stars_limit_mag) return 0;
 
-    if (!painter_project(&painter, FRAME_ICRF, obj->pvo[0], false, true, p_win))
+    if (!painter_project(&painter, FRAME_ICRF, sat->pvo[0], false, true, p_win))
         return 0;
 
     core_get_point_for_mag(vmag, &size, &luminance);
@@ -366,7 +367,7 @@ static int satellite_render(const obj_t *obj, const painter_t *painter_)
     // Render name if needed.
     size = max(8, size);
     if (*sat->name && (selected || vmag <= painter.hints_limit_mag - 1.0)) {
-        labels_add_3d(sat->name, FRAME_ICRF, obj->pvo[0], false, size,
+        labels_add_3d(sat->name, FRAME_ICRF, sat->pvo[0], false, size,
                       FONT_SIZE_BASE, label_color, 0, LABEL_AROUND,
                       selected ? TEXT_BOLD : 0,
                       0, obj->oid);

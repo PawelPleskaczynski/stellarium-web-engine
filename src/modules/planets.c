@@ -40,6 +40,7 @@ struct planet {
     // Cached values.
     double      pvh[2][3];   // equ, J2000.0, AU heliocentric pos and speed.
     double      hpos[3];     // ecl, heliocentric pos J2000.0
+    double      pvo[2][4];   // ICRF, observer centric.
     double      vmag;
     double      phase;
     double      radius;     // Apparent disk radius (rad)
@@ -156,10 +157,10 @@ static int earth_update(planet_t *planet, const observer_t *obs)
     eraCpv(obs->earth_pvh, planet->pvh);
     eraZpv(pv);
     position_to_apparent(obs, ORIGIN_GEOCENTRIC, false, pv, pv);
-    vec3_copy(pv[0], planet->obj.pvo[0]);
-    vec3_copy(pv[1], planet->obj.pvo[1]);
-    planet->obj.pvo[0][3] = 1;
-    planet->obj.pvo[1][3] = 1;
+    vec3_copy(pv[0], planet->pvo[0]);
+    vec3_copy(pv[1], planet->pvo[1]);
+    planet->pvo[0][3] = 1;
+    planet->pvo[1][3] = 1;
     // Ecliptic position.
     mat3_mul_vec3(obs->ri2e, planet->pvh[0], planet->hpos);
     planet->phase = NAN;
@@ -178,13 +179,13 @@ static double compute_sun_eclipse_factor(const planet_t *sun,
     double sep;     // Separation angle between sun and body.
     planet_t *p;
 
-    sun_r = 2.0 * sun->radius_m / DAU / vec3_norm(sun->obj.pvo[0]);
+    sun_r = 2.0 * sun->radius_m / DAU / vec3_norm(sun->pvo[0]);
 
     PLANETS_ITER(sun->obj.parent, p) {
         if (p->id != MOON) continue; // Only consider the Moon.
         planet_update_(p, obs);
-        sph_r = 2.0 * p->radius_m / DAU / vec3_norm(p->obj.pvo[0]);
-        sep = eraSepp(sun->obj.pvo[0], p->obj.pvo[0]);
+        sph_r = 2.0 * p->radius_m / DAU / vec3_norm(p->pvo[0]);
+        sep = eraSepp(sun->pvo[0], p->pvo[0]);
         // Compute shadow factor.
         // XXX: this should be in algos.
         if (sep >= sun_r + sph_r) return 1.0; // Outside of shadow.
@@ -209,10 +210,10 @@ static int sun_update(planet_t *planet, const observer_t *obs)
     double eclipse_factor;
     double dist_pc; // Distance in parsec.
     eraZpv(planet->pvh);
-    vec3_copy(obs->sun_pvo[0], planet->obj.pvo[0]);
-    vec3_copy(obs->sun_pvo[1], planet->obj.pvo[1]);
-    planet->obj.pvo[0][3] = 1;
-    planet->obj.pvo[1][3] = 1;
+    vec3_copy(obs->sun_pvo[0], planet->pvo[0]);
+    vec3_copy(obs->sun_pvo[1], planet->pvo[1]);
+    planet->pvo[0][3] = 1;
+    planet->pvo[1][3] = 1;
     planet->phase = NAN;
 
     // Compute the apparent magnitude for the absolute mag (V: 4.83) and
@@ -258,18 +259,18 @@ static int moon_update(planet_t *planet, const observer_t *obs)
 
     // Compute apparent position
     position_to_apparent(obs, ORIGIN_GEOCENTRIC, false, pv, pv);
-    vec3_copy(pv[0], planet->obj.pvo[0]);
-    vec3_copy(pv[1], planet->obj.pvo[1]);
-    planet->obj.pvo[0][3] = 1;
-    planet->obj.pvo[1][3] = 1;
+    vec3_copy(pv[0], planet->pvo[0]);
+    vec3_copy(pv[1], planet->pvo[1]);
+    planet->pvo[0][3] = 1;
+    planet->pvo[1][3] = 1;
 
-    i = eraSepp(planet->pvh[0], planet->obj.pvo[0]);
+    i = eraSepp(planet->pvh[0], planet->pvo[0]);
     planet->phase = 0.5 * cos(i) + 0.5;
 
     // Compute visual mag.
     // This is based on the algo of pyephem.
     // XXX: move into 'algos'.
-    el = eraSepp(planet->obj.pvo[0], obs->sun_pvo[0]); // Elongation.
+    el = eraSepp(planet->pvo[0], obs->sun_pvo[0]); // Elongation.
     planet->vmag = -12.7 +
         2.5 * (log10(M_PI) - log10(M_PI / 2.0 * (1.0 + 1.e-6 - cos(el)))) +
         5.0 * log10(dist / .0025);
@@ -296,17 +297,17 @@ static int plan94_update(planet_t *planet, const observer_t *obs)
     }
 
     position_to_apparent(obs, ORIGIN_HELIOCENTRIC, false, planet->pvh, pv);
-    vec3_copy(pv[0], planet->obj.pvo[0]);
-    vec3_copy(pv[1], planet->obj.pvo[1]);
-    planet->obj.pvo[0][3] = 1;
-    planet->obj.pvo[1][3] = 1;
+    vec3_copy(pv[0], planet->pvo[0]);
+    vec3_copy(pv[1], planet->pvo[1]);
+    planet->pvo[0][3] = 1;
+    planet->pvo[1][3] = 1;
 
-    i = eraSepp(planet->pvh[0], planet->obj.pvo[0]);
+    i = eraSepp(planet->pvh[0], planet->pvo[0]);
     planet->phase = 0.5 * cos(i) + 0.5;
     // Compute visual magnitude.
     i *= DR2D / 100;
     rho = vec3_norm(planet->pvh[0]);
-    rp = vec3_norm(planet->obj.pvo[0]);
+    rp = vec3_norm(planet->pvo[0]);
     vis = VIS_ELEMENTS[n];
     planet->vmag = vis[1] + 5 * log10(rho * rp) +
                         i * (vis[2] + i * (vis[3] + i * vis[4]));
@@ -332,15 +333,15 @@ static int l12_update(planet_t *planet, const observer_t *obs)
         planet->last_full_update = obs->ut1;
     }
     position_to_apparent(obs, ORIGIN_HELIOCENTRIC, false, planet->pvh, pv);
-    vec3_copy(pv[0], planet->obj.pvo[0]);
-    vec3_copy(pv[1], planet->obj.pvo[1]);
-    planet->obj.pvo[0][3] = 1;
-    planet->obj.pvo[1][3] = 1;
+    vec3_copy(pv[0], planet->pvo[0]);
+    vec3_copy(pv[1], planet->pvo[1]);
+    planet->pvo[0][3] = 1;
+    planet->pvo[1][3] = 1;
 
     // Compute visual magnitude.
     // http://www.physics.sfasu.edu/astro/asteroids/sizemagnitude.html
     rho = vec3_norm(planet->pvh[0]);
-    rp = vec3_norm(planet->obj.pvo[0]);
+    rp = vec3_norm(planet->pvo[0]);
     mag = -1.0 / 0.2 * log10(sqrt(planet->albedo) *
             2.0 * planet->radius_m / 1000.0 / 1329.0);
     planet->vmag = mag + 5 * log10(rho * rp);
@@ -385,15 +386,15 @@ static int kepler_update(planet_t *planet, const observer_t *obs)
     }
 
     position_to_apparent(obs, ORIGIN_HELIOCENTRIC, false, planet->pvh, pv);
-    vec3_copy(pv[0], planet->obj.pvo[0]);
-    vec3_copy(pv[1], planet->obj.pvo[1]);
-    planet->obj.pvo[0][3] = 1;
-    planet->obj.pvo[1][3] = 1;
+    vec3_copy(pv[0], planet->pvo[0]);
+    vec3_copy(pv[1], planet->pvo[1]);
+    planet->pvo[0][3] = 1;
+    planet->pvo[1][3] = 1;
 
     // Compute visual magnitude.
     // http://www.physics.sfasu.edu/astro/asteroids/sizemagnitude.html
     rho = vec3_norm(planet->pvh[0]);
-    rp = vec3_norm(planet->obj.pvo[0]);
+    rp = vec3_norm(planet->pvo[0]);
     double mag = -1.0 / 0.2 * log10(sqrt(planet->albedo) *
             2.0 * planet->radius_m / 1000.0 / 1329.0);
     planet->vmag = mag + 5 * log10(rho * rp);
@@ -454,7 +455,7 @@ static int planet_update_(planet_t *planet, const observer_t *obs)
     }
 
     planet->radius = planet->radius_m / DAU /
-            eraPm((double*)planet->obj.pvo[0]);
+            eraPm((double*)planet->pvo[0]);
 
     return 0;
 }
@@ -463,7 +464,7 @@ static int planet_update(obj_t *obj, const observer_t *obs, double dt)
 {
     planet_t *planet = (planet_t*)obj;
     planet_update_(planet, obs);
-    assert(obj->pvo[0][3] == 1.0);
+    assert(planet->pvo[0][3] == 1.0);
     return 0;
 }
 
@@ -471,7 +472,7 @@ static int planet_get_pvo(obj_t *obj, const observer_t *obs, double pvo[2][4])
 {
     planet_t *planet = (planet_t*)obj;
     planet_update_(planet, obs);
-    memcpy(pvo, planet->obj.pvo, sizeof(planet->obj.pvo));
+    memcpy(pvo, planet->pvo, sizeof(planet->pvo));
     return 0;
 }
 
@@ -572,7 +573,7 @@ static void render_rings(const planet_t *planet,
 
     // Add the planet in the painter shadow candidates.
     if (painter.planet.shadow_spheres_nb < 4) {
-        vec3_copy(planet->obj.pvo[0],
+        vec3_copy(planet->pvo[0],
                   painter.planet.shadow_spheres[
                                     painter.planet.shadow_spheres_nb]);
         painter.planet.shadow_spheres[painter.planet.shadow_spheres_nb][3] =
@@ -651,7 +652,7 @@ static int get_shadow_candidates(const planet_t *planet, int nb_max,
                     continue;
                 nb--; // Remove the last one.
             }
-            vec3_copy(other->obj.pvo[0], spheres[nb]);
+            vec3_copy(other->pvo[0], spheres[nb]);
             spheres[nb][3] = other->radius_m / DAU;
             nb++;
             qsort(spheres, nb, 4 * sizeof(double), sort_shadow_cmp);
@@ -689,7 +690,7 @@ static void planet_render_hips(const planet_t *planet,
     double pos[4];
     double dist;
     double full_emit[3] = {1.0, 1.0, 1.0};
-    double angle = 2 * radius * r_scale / vec2_norm(planet->obj.pvo[0]);
+    double angle = 2 * radius * r_scale / vec2_norm(planet->pvo[0]);
     int i, nb_tot = 0, nb_loaded = 0;
     double sun_pos[4] = {0, 0, 0, 1};
     planets_t *planets = (planets_t*)planet->obj.parent;
@@ -713,13 +714,13 @@ static void planet_render_hips(const planet_t *planet,
     painter.color[3] *= alpha;
     painter.flags |= PAINTER_PLANET_SHADER;
 
-    vec4_copy(planet->obj.pvo[0], pos);
+    vec4_copy(planet->pvo[0], pos);
     mat4_set_identity(mat);
     mat4_itranslate(mat, pos[0], pos[1], pos[2]);
     mat4_iscale(mat, radius * r_scale, radius * r_scale, radius * r_scale);
 
     // Compute sun position.
-    vec3_copy(planets->sun->obj.pvo[0], sun_pos);
+    vec3_copy(planets->sun->pvo[0], sun_pos);
     sun_pos[3] = planets->sun->radius_m / DAU;
     painter.planet.sun = &sun_pos;
 
@@ -740,7 +741,7 @@ static void planet_render_hips(const planet_t *planet,
     // XXX: for the moment we only use depth if the planet has a ring,
     // to prevent having to clean the depth buffer.
     if (planet->rings.tex) {
-        dist = vec3_norm(planet->obj.pvo[0]);
+        dist = vec3_norm(planet->pvo[0]);
         depth_range[0] = dist * 0.5;
         depth_range[1] = dist * 2;
         painter.depth_range = &depth_range;
@@ -776,18 +777,18 @@ static void planet_render_orbit(const planet_t *planet,
     if (planet->color[3]) vec3_copy(planet->color, painter.color);
 
     // Compute orbit elements.
-    vec3_sub(planet->obj.pvo[0], planet->parent->obj.pvo[0], p);
-    vec3_sub(planet->obj.pvo[1], planet->parent->obj.pvo[1], v);
+    vec3_sub(planet->pvo[0], planet->parent->pvo[0], p);
+    vec3_sub(planet->pvo[1], planet->parent->pvo[1], v);
     orbit_elements_from_pv(p, v, mu, &in, &om, &w, &a, &n, &ec, &ma);
 
     // Center the rendering on the parent planet.
-    vec4_copy(planet->parent->obj.pvo[0], pos);
+    vec4_copy(planet->parent->pvo[0], pos);
     mat4_set_identity(mat);
     mat4_itranslate(mat, pos[0], pos[1], pos[2]);
     painter.transform = &mat;
 
     // Set the depth range same as the parent!!!!
-    dist = vec3_norm(planet->parent->obj.pvo[0]);
+    dist = vec3_norm(planet->parent->pvo[0]);
     depth_range[0] = dist * 0.5;
     depth_range[1] = dist * 2;
     painter.depth_range = &depth_range;
@@ -815,7 +816,7 @@ static void planet_render_label(
     else
         snprintf(label, sizeof(label), "%s x%.1f", name, scale);
 
-    vec3_copy(planet->obj.pvo[0], pos);
+    vec3_copy(planet->pvo[0], pos);
     vec3_normalize(pos, pos);
 
     // Radius on screen in pixel.
@@ -870,10 +871,10 @@ static void planet_render(const planet_t *planet, const painter_t *painter_)
     // Compute max angular radius of the planet, taking into account the
     // ring and the point size if it is bigger than the planet.
     radius_m = max(planet->radius_m, planet->rings.outer_radius) * r_scale;
-    radius = max(radius_m / DAU / vec3_norm(planet->obj.pvo[0]), point_r);
+    radius = max(radius_m / DAU / vec3_norm(planet->pvo[0]), point_r);
 
     // Compute planet's pos and bounding cap in ICRF
-    vec3_copy(planet->obj.pvo[0], pos);
+    vec3_copy(planet->pvo[0], pos);
     vec3_normalize(pos, pos);
     vec3_copy(pos, cap);
     cap[3] = cos(radius);
@@ -940,7 +941,7 @@ static int sort_cmp(const obj_t *a, const obj_t *b)
 {
     const planet_t *pa = (const planet_t*)a;
     const planet_t *pb = (const planet_t*)b;
-    return cmp(eraPm(pb->obj.pvo[0]), eraPm(pa->obj.pvo[0]));
+    return cmp(eraPm(pb->pvo[0]), eraPm(pa->pvo[0]));
 }
 
 static int planets_update(obj_t *obj, const observer_t *obs, double dt)
