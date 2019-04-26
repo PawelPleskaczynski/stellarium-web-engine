@@ -81,7 +81,7 @@ Module.afterInit(function() {
   }
 
   SweObj.prototype.get = function(info, obs) {
-    var cret = obj_get_info_json(this.v, obs, info)
+    var cret = obj_get_info_json(this.v, obs.v, info)
     var ret = Module.Pointer_stringify(cret)
     Module._free(cret)
     return JSON.parse(ret)
