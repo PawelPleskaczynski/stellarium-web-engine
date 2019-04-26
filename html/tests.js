@@ -28,9 +28,8 @@ var testBasic = function(stel) {
   assert(JSON.stringify(stel.observer.azalt) === JSON.stringify([0, 1, 0]));
   // Test sun pos.
   var sun = stel.getObj("Sun");
-  sun.update();
-  var icrs = sun.icrs;
-  var cirs = stel.convertFrame(stel.observer, 'ICRF', 'CIRS', icrs);
+  var pvo = sun.get('pvo', stel.observer);
+  var cirs = stel.convertFrame(stel.observer, 'ICRF', 'CIRS', pvo[0]);
   var ra  = stel.anp(stel.c2s(cirs)[0]);
   var dec = stel.anpm(stel.c2s(cirs)[1]);
   assert(isNear(ra, 165.48 * stel.D2R, 0.01));

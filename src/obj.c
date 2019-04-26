@@ -165,6 +165,7 @@ int obj_get_info(obj_t *obj, observer_t *obs, int info,
 {
     double pvo[2][4];
 
+    observer_update(obs, true);
     switch (info) {
     case INFO_TYPE:
         strncpy(out, obj->type, 4);
@@ -188,6 +189,48 @@ int obj_get_info(obj_t *obj, observer_t *obs, int info,
         return obj->klass->get_info(obj, obs, info, out);
     }
     return 1;
+}
+
+EMSCRIPTEN_KEEPALIVE
+char *obj_get_info_json(const obj_t *obj, observer_t *obs, const char *info_s)
+{
+    int info = obj_info_from_str(info_s);
+    int type = info % 16;
+    int r = 0;
+    union {
+        double v4x2[2][4];
+    } v;
+    char *ret = NULL;
+
+    obj_get_info(obj, obs, info, &v);
+
+    switch (type) {
+    case TYPE_FLOAT:
+        break;
+    case TYPE_INT:
+        break;
+    case TYPE_BOOL:
+        break;
+    case TYPE_STRING:
+        break;
+    case TYPE_PTR:
+        break;
+    case TYPE_V2:
+        break;
+    case TYPE_V3:
+        break;
+    case TYPE_V4:
+        break;
+    case TYPE_V4X2:
+        r = asprintf(&ret, "[[%g, %g, %g, %g], [%g, %g, %g, %g]]",
+                     VEC4_SPLIT(v.v4x2[0]), VEC4_SPLIT(v.v4x2[1]));
+        break;
+    default:
+        assert(false);
+        return NULL;
+    }
+    if (r < 0) LOG_E("Cannot generate json");
+    return ret;
 }
 
 EMSCRIPTEN_KEEPALIVE
@@ -474,6 +517,24 @@ const char *obj_info_type_str(int type)
 #undef X
     };
     return names[type];
+}
+
+int obj_info_from_str(const char *str)
+{
+    struct {
+        int info;
+        const char *name;
+    } map[] = {
+#define X(name, lower, ...) {INFO_##name, #name},
+        ALL_INFO(X)
+#undef X
+    };
+
+    int i;
+    for (i = 0; i < ARRAY_SIZE(map); i++) {
+        if (strcasecmp(str, map[i].name) == 0) return map[i].info;
+    }
+    return 0;
 }
 
 /******** TESTS ***********************************************************/
