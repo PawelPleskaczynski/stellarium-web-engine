@@ -63,7 +63,6 @@ var testSearch = function(stel) {
 var testCloneObserver = function(stel) {
   var obs = stel.observer.clone();
   var jupiter = stel.getObj('jupiter');
-  jupiter.update(obs);
   obs.destroy();
 };
 

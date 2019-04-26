@@ -77,7 +77,7 @@ Module.afterInit(function() {
   }
 
   SweObj.prototype.update = function() {
-    Module._obj_update(this.v, 0.0);
+    Module._module_update(this.v, 0.0);
   }
 
   SweObj.prototype.get = function(info, obs) {
