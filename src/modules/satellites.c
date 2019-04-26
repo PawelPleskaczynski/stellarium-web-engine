@@ -396,16 +396,6 @@ static obj_klass_t satellite_klass = {
     // .update         = satellite_update,
     .render         = satellite_render,
     .get_designations = satellite_get_designations,
-
-    .attributes = (attribute_t[]) {
-        // Default properties.
-        INFO(name),
-        INFO(distance),
-        INFO(radec),
-        INFO(vmag),
-        INFO(type),
-        {}
-    },
 };
 OBJ_REGISTER(satellite_klass)
 

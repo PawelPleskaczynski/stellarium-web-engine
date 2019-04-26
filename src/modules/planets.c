@@ -480,6 +480,9 @@ static int planet_get_info(obj_t *obj, const observer_t *obs, int info,
     case INFO_PHASE:
         *(double*)out = planet->phase;
         return 0;
+    case INFO_RADIUS:
+        *(double*)out = planet->radius;
+        return 0;
     default:
         return 1;
     }
@@ -1208,16 +1211,6 @@ static obj_klass_t planet_klass = {
     .get_info = planet_get_info,
     // .update = planet_update,
     .get_designations = planet_get_designations,
-    .attributes = (attribute_t[]) {
-        INFO(name),
-        INFO(radec),
-        INFO(vmag),
-        INFO(distance),
-        INFO(phase, TYPE_FLOAT, MEMBER(planet_t, phase)),
-        INFO(radius, TYPE_RADIUS, MEMBER(planet_t, radius)),
-        INFO(type),
-        {}
-    },
 };
 OBJ_REGISTER(planet_klass)
 

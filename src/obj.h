@@ -243,14 +243,6 @@ struct attribute {
 #define PROPERTY(name, ...) {#name, ##__VA_ARGS__, .is_prop = true}
 
 /*
- * Macro: INFO
- * Convenience macro to define an info property.
- */
-#define INFO(name, ...) {#name, ##__VA_ARGS__, .is_prop = true, \
-                         .info = INFO_##name}
-
-
-/*
  * Macro: FUNCTION
  * Convenience macro to define a function attribute.
  */

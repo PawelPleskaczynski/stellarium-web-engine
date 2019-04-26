@@ -366,15 +366,6 @@ static obj_klass_t mplanet_klass = {
     .get_info   = mplanet_get_info,
     .render     = mplanet_render,
     .get_designations = mplanet_get_designations,
-    .attributes = (attribute_t[]) {
-        // Default properties.
-        INFO(name),
-        INFO(distance),
-        INFO(radec),
-        INFO(vmag),
-        INFO(type),
-        {},
-    },
 };
 OBJ_REGISTER(mplanet_klass)
 

@@ -609,15 +609,6 @@ static obj_klass_t constellation_klass = {
     .del            = constellation_del,
     .get_designations = constellation_get_designations,
     .get_2d_ellipse = constellation_get_2d_ellipse,
-    .attributes     = (attribute_t[]) {
-        // Default properties.
-        INFO(name),
-        INFO(distance),
-        INFO(radec),
-        INFO(vmag),
-        INFO(type),
-        {}
-    },
 };
 OBJ_REGISTER(constellation_klass)
 

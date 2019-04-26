@@ -245,7 +245,7 @@ static int atmosphere_render(const obj_t *obj, const painter_t *painter_)
     data.lum_scale = atm->lum_scale;
     // This is quite ad-hoc as in reality we are using a HIPS grid
     data.grid_angular_step = 8. * DD2R;
-    obj_get_attr(moon, "phase", &moon_phase);
+    obj_get_info(moon, obs, INFO_PHASE, &moon_phase);
     prepare_skybrightness(&data.skybrightness,
             &painter, sun_pos, moon_pos, moon_vmag, moon_phase,
             atm->twilight_coef);

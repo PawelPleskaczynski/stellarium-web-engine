@@ -345,15 +345,6 @@ static obj_klass_t comet_klass = {
     .update     = comet_update,
     .render     = comet_render,
     .get_designations = comet_get_designations,
-    .attributes = (attribute_t[]) {
-        // Default properties.
-        INFO(name),
-        INFO(distance),
-        INFO(radec),
-        INFO(vmag),
-        INFO(type),
-        {},
-    },
 };
 OBJ_REGISTER(comet_klass)
 

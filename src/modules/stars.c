@@ -873,15 +873,6 @@ static obj_klass_t star_klass = {
     // .update     = star_update,
     .render     = star_render,
     .get_designations = star_get_designations,
-    .attributes = (attribute_t[]) {
-        // Default properties.
-        INFO(vmag),
-        INFO(type),
-        INFO(name),
-        INFO(distance, MEMBER(star_t, data.distance)),
-        INFO(radec),
-        {},
-    },
 };
 OBJ_REGISTER(star_klass)
 
