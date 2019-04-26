@@ -179,15 +179,9 @@ static int satellites_update(obj_t *obj, const observer_t *obs, double dt)
 {
     PROFILE(satellites_update, 0);
     satellites_t *sats = (satellites_t*)obj;
-    satellite_t *sat;
     if (!sats->source_url) return 0;
     if (!load_qsmag(sats)) return 0;
     if (!load_data(sats)) return 0;
-
-    MODULE_ITER(sats, sat, "tle_satellite") {
-        obj_update((obj_t*)sat, obs, dt);
-    }
-
     return 0;
 }
 
@@ -306,10 +300,9 @@ static int satellite_init(obj_t *obj, json_value *args)
 /*
  * Update an individual satellite.
  */
-static int satellite_update(obj_t *obj, const observer_t *obs, double dt)
+static int satellite_update(satellite_t *sat, const observer_t *obs)
 {
     double pv[2][3];
-    satellite_t *sat = (satellite_t*)obj;
     sgp4(sat->elsetrec, obs->tt, pv[0],  pv[1]); // Orbit computation.
 
     vec3_mul(1000.0 / DAU, pv[0], pv[0]);
@@ -340,6 +333,7 @@ static int satellite_render(const obj_t *obj, const painter_t *painter_)
     satellite_t *sat = (satellite_t*)obj;
     const bool selected = core->selection && obj->oid == core->selection->oid;
 
+    satellite_update(sat, painter.obs);
     vmag = sat->vmag;
     if (vmag > painter.stars_limit_mag) return 0;
 
@@ -399,7 +393,7 @@ static obj_klass_t satellite_klass = {
     .flags          = 0,
     .render_order   = 30,
     .init           = satellite_init,
-    .update         = satellite_update,
+    // .update         = satellite_update,
     .render         = satellite_render,
     .get_designations = satellite_get_designations,
 

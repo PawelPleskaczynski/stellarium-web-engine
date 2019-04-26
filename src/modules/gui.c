@@ -116,7 +116,6 @@ static void search_widget(void)
         obj = obj_get(NULL, buf, 0);
         if (obj) {
             memset(buf, 0, sizeof(buf));
-            obj_update(obj, core->observer, 0);
             obj_set_attr(&core->obj, "selection", obj);
             obj_set_attr(&core->obj, "lock", obj);
         }
@@ -293,7 +292,6 @@ static void info_widget(obj_t *obj)
     observer_t *obs = core->observer;
 
     if (!obj) return;
-    obj_update(obj, core->observer, 0);
     gui_text_unformatted(obj_get_name(obj, buf));
     if (obj_get_info(obj, obs, INFO_TYPE, buf1) == 0)
         gui_label("TYPE", otype_get_str(buf1));

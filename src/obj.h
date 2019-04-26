@@ -108,7 +108,6 @@ struct obj_klass
     void (*del)(obj_t *obj);
     int (*get_pvo)(obj_t *obj, const observer_t *obs, double pvo[2][4]);
     int (*get_info)(obj_t *obj, const observer_t *obs, int info, void *out);
-    int (*update)(obj_t *obj, const observer_t *obs, double dt);
     int (*render)(const obj_t *obj, const painter_t *painter);
     int (*post_render)(const obj_t *obj, const painter_t *painter);
     obj_t* (*clone)(const obj_t *obj);
@@ -120,6 +119,7 @@ struct obj_klass
 
     int (*on_mouse)(obj_t *obj, int id, int state, double x, double y);
 
+    int (*update)(obj_t *module, const observer_t *obs, double dt);
     // Find a sky object given an id.
     obj_t *(*get)(const obj_t *obj, const char *id, int flags);
     // Find a sky object given an oid
@@ -195,11 +195,6 @@ struct obj
     char        type_padding_; // Ensure that type is null terminated.
     obj_t       *parent;
     obj_t       *children, *prev, *next;
-
-    // Must be up to date after a call to obj_update.
-    // double      vmag;
-    // Barycentric position/velocity in ICRF as seen from observer
-    // double      pvo[2][4];
 };
 
 /*
@@ -307,17 +302,6 @@ obj_t *obj_clone(const obj_t *obj);
  * Render an object.
  */
 int obj_render(const obj_t *obj, const painter_t *painter);
-
-/*
- * Function: obj_update
- * Update the internal state of the object.
- *
- * Parameters:
- *   obs - The observer (can be null for non astro objects, like ui, etc).
- *   dt  - User delta time (used for example for fading effects).
- */
-int obj_update(obj_t *obj, observer_t *obs, double dt);
-
 
 int obj_get_pvo(obj_t *obj, observer_t *obs, double pvo[2][4]);
 

@@ -49,7 +49,10 @@ static int layer_update(obj_t *obj, const observer_t *obs, double dt)
     layer_t *layer = (layer_t*)obj;
     obj_t *child;
     fader_update(&layer->visible, dt);
-    MODULE_ITER(obj, child, NULL) obj_update(child, obs, dt);
+    MODULE_ITER(obj, child, NULL) {
+        if (child->klass->flags & OBJ_MODULE)
+            module_update(child, obs, dt);
+    }
     return 0;
 }
 

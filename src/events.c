@@ -67,7 +67,6 @@ static double rise_dist(double time, void *user)
 
     data->obs->tt = time;
     observer_update(data->obs, false);
-    obj_update(data->obj, data->obs, 0);
     obj_get_pvo(data->obj, data->obs, pvo);
     convert_framev4(data->obs, FRAME_ICRF, FRAME_OBSERVED, pvo[0], observed);
     eraC2s(observed, &az, &alt);

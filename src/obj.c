@@ -210,18 +210,6 @@ int obj_get_info(obj_t *obj, observer_t *obs, int info,
 }
 
 EMSCRIPTEN_KEEPALIVE
-int obj_update(obj_t *obj, observer_t *obs, double dt)
-{
-    int ret;
-    assert(!obs || obs->hash != 0);
-    if (!obj->klass->update) return 0;
-    observer_update(obs, true);
-    assert(obs->astrom.em);
-    ret = obj->klass->update(obj, obs, dt);
-    return ret;
-}
-
-EMSCRIPTEN_KEEPALIVE
 const char *obj_get_id(const obj_t *obj)
 {
     return obj->id;
@@ -507,7 +495,6 @@ obj_klass_t *obj_get_klass_by_name(const char *name)
 void obj_get_pos_icrs(obj_t *obj, observer_t *obs, double pos[4])
 {
     double pvo[2][4];
-    obj_update(obj, obs, 0);
     obj_get_pvo(obj, obs, pvo);
     vec4_copy(pvo[0], pos);
 }

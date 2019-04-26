@@ -200,10 +200,9 @@ static int mplanet_init(obj_t *obj, json_value *args)
     return 0;
 }
 
-static int mplanet_update(obj_t *obj, const observer_t *obs, double dt)
+static int mplanet_update(mplanet_t *mp, const observer_t *obs)
 {
     double pvh[2][3], pvo[2][3];
-    mplanet_t *mp = (mplanet_t*)obj;
 
     orbit_compute_pv(0, obs->ut1, pvh[0], pvh[1],
             mp->orbit.d, mp->orbit.i, mp->orbit.o, mp->orbit.w,
@@ -224,11 +223,20 @@ static int mplanet_update(obj_t *obj, const observer_t *obs, double dt)
     return 0;
 }
 
+
+static int mplanet_get_pvo(obj_t *obj, const observer_t *obs, double pvo[2][4])
+{
+    mplanet_t *mp = (mplanet_t*)obj;
+    mplanet_update(mp, obs);
+    memcpy(pvo, mp->pvo, sizeof(mp->pvo));
+    return 0;
+}
+
 static int mplanet_get_info(obj_t *obj, const observer_t *obs, int info,
                             void *out)
 {
     mplanet_t *mp = (mplanet_t*)obj;
-    mplanet_update(obj, obs, 0);
+    mplanet_update(mp, obs);
     switch (info) {
     case INFO_VMAG:
         *(double*)out = mp->vmag;
@@ -323,7 +331,6 @@ static int mplanets_render(const obj_t *obj, const painter_t *painter)
                 child->obj.oid != selection_oid &&
                 !range_contains(mps->update_pos, update_nb, nb, i))
             continue;
-        obj_update((obj_t*)child, painter->obs, 0);
         obj_render((obj_t*)child, painter);
     }
     mps->update_pos = nb ? (mps->update_pos + update_nb) % nb : 0;
@@ -355,8 +362,8 @@ static obj_klass_t mplanet_klass = {
     .model      = "mpc_asteroid",
     .size       = sizeof(mplanet_t),
     .init       = mplanet_init,
+    .get_pvo    = mplanet_get_pvo,
     .get_info   = mplanet_get_info,
-    .update     = mplanet_update,
     .render     = mplanet_render,
     .get_designations = mplanet_get_designations,
     .attributes = (attribute_t[]) {

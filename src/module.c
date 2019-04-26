@@ -11,6 +11,17 @@
 
 static void (*g_listener)(obj_t *module, const char *attr) = NULL;
 
+EMSCRIPTEN_KEEPALIVE
+int module_update(obj_t *module, observer_t *obs, double dt)
+{
+    assert(!obs || obs->hash != 0);
+    if (!module->klass->update) return 0;
+    observer_update(obs, true);
+    assert(obs->astrom.em);
+    return module->klass->update(module, obs, dt);
+}
+
+
 /*
  * Function: module_list_obj
  * List all astro objects in a module.

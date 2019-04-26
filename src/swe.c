@@ -272,7 +272,6 @@ static void test_ephemeris(void)
         obj = obj_get_by_oid(NULL, ephs[i].oid, 0);
         assert(obj);
 
-        obj_update(obj, core->observer, 0);
         obj_get_pvo(obj, core->observer, pvo);
         convert_framev4(obs, FRAME_ICRF, FRAME_JNOW,
                         pvo[0], got.apparent_radec);

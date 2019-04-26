@@ -281,7 +281,7 @@ static int skycultures_update(obj_t *obj, const observer_t *obs, double dt)
 {
     obj_t *skyculture;
     MODULE_ITER(obj, skyculture, "skyculture") {
-        obj_update(skyculture, obs, dt);
+        skyculture_update(skyculture, obs, dt);
     }
     return 0;
 }

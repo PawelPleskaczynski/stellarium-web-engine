@@ -150,7 +150,6 @@ static int compute_img_mat(const anchor_t anchors[static 3], double mat[3][3])
         }
         // XXX: instead we should get the star g_ra and g_dec, since they
         // shouldn't change.
-        obj_update(star, core->observer, 0);
         obj_get_pvo(star, core->observer, pvo);
         vec3_normalize(pvo[0], pos[i]);
         obj_release(star);
@@ -253,7 +252,6 @@ static int constellation_update(obj_t *obj, const observer_t *obs, double dt)
     con->last_update = obs->tt;
 
     for (i = 0; i < con->count; i++) {
-        obj_update(con->stars[i], obs, 0);
         obj_get_pvo(con->stars[i], obs, pvo);
         vec3_add(pos, pvo[0], pos);
     }
@@ -563,7 +561,7 @@ static int constellations_update(obj_t *obj, const observer_t *obs, double dt)
         (!core->selection || core->selection->parent != obj)) return 0;
 
     MODULE_ITER(obj, con, "constellation") {
-        obj_update((obj_t*)con, obs, dt);
+        constellation_update(&con->obj, obs, dt);
     }
     return 0;
 }

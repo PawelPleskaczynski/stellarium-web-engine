@@ -1,4 +1,15 @@
 
+
+/*
+ * Function: obj_update
+ * Update the internal state of the object.
+ *
+ * Parameters:
+ *   obs - The observer.
+ *   dt  - User delta time (used for example for fading effects).
+ */
+int module_update(obj_t *module, observer_t *obs, double dt);
+
 /*
  * Function: module_list_obj
  * List all astro objects in a module.

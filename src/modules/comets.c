@@ -252,12 +252,9 @@ static bool range_contains(int range_start, int range_size, int nb, int i)
 static int comets_update(obj_t *obj, const observer_t *obs, double dt)
 {
     PROFILE(comets_update, 0);
-    int size, code, i, nb;
+    int size, code;
     const char *data;
-    obj_t *tmp;
-    comet_t *child;
     comets_t *comets = (void*)obj;
-    const int update_nb = 32;
 
     if (!comets->parsed && comets->source_url) {
         data = asset_get_data(comets->source_url, &size, &code);
@@ -277,30 +274,33 @@ static int comets_update(obj_t *obj, const observer_t *obs, double dt)
                       "mpc_comet") == 0);
     }
 
-    /* To prevent spending too much time computing position of comets that
-     * are not visible, we only update a small number of them at each
-     * frame, using a moving range.  The comets who have been flagged as
-     * on screen get updated no matter what.  */
-    DL_COUNT(obj->children, tmp, nb);
-    i = 0;
-    MODULE_ITER(obj, child, "mpc_comet") {
-        if (child->on_screen ||
-                range_contains(comets->update_pos, update_nb, nb, i))
-        {
-            obj_update((obj_t*)child, obs, dt);
-        }
-        i++;
-    }
-    comets->update_pos = nb ? (comets->update_pos + update_nb) % nb : 0;
     return 0;
 }
 
 static int comets_render(const obj_t *obj, const painter_t *painter)
 {
     PROFILE(comets_render, 0);
-    obj_t *child;
-    MODULE_ITER(obj, child, "mpc_comet")
-        obj_render(child, painter);
+    comets_t *comets = (void*)obj;
+    comet_t *child;
+    obj_t *tmp;
+    const int update_nb = 32;
+    int nb, i;
+
+    /* To prevent spending too much time computing position of comets that
+     * are not visible, we only render a small number of them at each
+     * frame, using a moving range.  The comets who have been flagged as
+     * on screen get rendered no matter what.  */
+    DL_COUNT(obj->children, tmp, nb);
+    i = 0;
+    MODULE_ITER(obj, child, "mpc_comet") {
+        if (child->on_screen ||
+                range_contains(comets->update_pos, update_nb, nb, i)) {
+            obj_render(&child->obj, painter);
+        }
+        i++;
+    }
+    comets->update_pos = nb ? (comets->update_pos + update_nb) % nb : 0;
+
     return 0;
 }
 

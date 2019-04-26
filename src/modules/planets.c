@@ -460,14 +460,6 @@ static int planet_update_(planet_t *planet, const observer_t *obs)
     return 0;
 }
 
-static int planet_update(obj_t *obj, const observer_t *obs, double dt)
-{
-    planet_t *planet = (planet_t*)obj;
-    planet_update_(planet, obs);
-    assert(planet->pvo[0][3] == 1.0);
-    return 0;
-}
-
 static int planet_get_pvo(obj_t *obj, const observer_t *obs, double pvo[2][4])
 {
     planet_t *planet = (planet_t*)obj;
@@ -944,6 +936,7 @@ static int sort_cmp(const obj_t *a, const obj_t *b)
     return cmp(eraPm(pb->pvo[0]), eraPm(pa->pvo[0]));
 }
 
+/*
 static int planets_update(obj_t *obj, const observer_t *obs, double dt)
 {
     PROFILE(planets_update, 0);
@@ -957,12 +950,19 @@ static int planets_update(obj_t *obj, const observer_t *obs, double dt)
     DL_SORT(obj->children, sort_cmp);
     return 0;
 }
+*/
 
 static int planets_render(const obj_t *obj, const painter_t *painter)
 {
     PROFILE(planets_render, 0);
     planets_t *planets = (planets_t*)obj;
     planet_t *p;
+
+    // First sort all the planets by distance to the observer.
+    PLANETS_ITER(planets, p) {
+        planet_update_(p, painter->obs);
+    }
+    DL_SORT(planets->obj.children, sort_cmp);
 
     PLANETS_ITER(planets, p) {
         planet_render(p, painter);
@@ -1206,7 +1206,7 @@ static obj_klass_t planet_klass = {
     .size = sizeof(planet_t),
     .get_pvo = planet_get_pvo,
     .get_info = planet_get_info,
-    .update = planet_update,
+    // .update = planet_update,
     .get_designations = planet_get_designations,
     .attributes = (attribute_t[]) {
         INFO(name),
@@ -1226,7 +1226,7 @@ static obj_klass_t planets_klass = {
     .size   = sizeof(planets_t),
     .flags  = OBJ_IN_JSON_TREE | OBJ_MODULE | OBJ_LISTABLE,
     .init   = planets_init,
-    .update = planets_update,
+    // .update = planets_update,
     .render = planets_render,
     .get_by_oid = planets_get_by_oid,
     .get     = planets_get,

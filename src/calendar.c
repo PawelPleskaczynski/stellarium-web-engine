@@ -362,6 +362,19 @@ static int clean_events(event_t **events, const observer_t *obs) {
     return 0;
 }
 
+static void cobj_update(cobj_t *o, const observer_t *obs)
+{
+    double pvo[2][4], p[3];
+    if (!o) return;
+    obj_get_pvo(o->obj, obs, pvo);
+    eraC2s(pvo[0], &o->ra, &o->de);
+    o->ra = eraAnp(o->ra);
+    o->de = eraAnp(o->de);
+    convert_framev4(obs, FRAME_ICRF, FRAME_OBSERVED, pvo[0], p);
+    o->obs_z = p[2];
+}
+
+
 // Function that can be used in the newton algo (slow).
 static double newton_fn_(double time, void *user)
 {
@@ -370,8 +383,8 @@ static double newton_fn_(double time, void *user)
     event_t *ev = USER_GET(user, 1);
     obs->tt = time;
     observer_update(obs, true);
-    if (ev->o1) obj_update(ev->o1->obj, obs, 0);
-    if (ev->o2) obj_update(ev->o2->obj, obs, 0);
+    if (ev->o1) cobj_update(ev->o1, obs);
+    if (ev->o2) cobj_update(ev->o2, obs);
     ret = ev->type->func(ev->type, obs, ev->o1, ev->o2);
     assert(!isnan(ret));
     return ret;
@@ -456,19 +469,6 @@ void calendar_delete(calendar_t *cal)
     // Delete events.
     DL_FOREACH_SAFE(cal->events, ev, ev_tmp) free(ev);
     free(cal);
-}
-
-static void cobj_update(cobj_t *o, const observer_t *obs)
-{
-    double pvo[2][4], p[3];
-    if (!o) return;
-    obj_update(o->obj, obs, 0);
-    obj_get_pvo(o->obj, obs, pvo);
-    eraC2s(pvo[0], &o->ra, &o->de);
-    o->ra = eraAnp(o->ra);
-    o->de = eraAnp(o->de);
-    convert_framev4(obs, FRAME_ICRF, FRAME_OBSERVED, pvo[0], p);
-    o->obs_z = p[2];
 }
 
 EMSCRIPTEN_KEEPALIVE

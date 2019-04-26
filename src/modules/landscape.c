@@ -236,7 +236,7 @@ static int landscapes_update(obj_t *obj, const observer_t *obs, double dt)
     landscapes_t *lss = (landscapes_t*)obj;
     obj_t *ls;
     MODULE_ITER((obj_t*)lss, ls, "landscape") {
-        obj_update(ls, obs, dt);
+        landscape_update(ls, obs, dt);
     }
     fader_update(&lss->visible, dt);
     fader_update(&lss->fog_visible, dt);
