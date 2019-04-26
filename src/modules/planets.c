@@ -467,11 +467,11 @@ static int planet_update(obj_t *obj, const observer_t *obs, double dt)
     return 0;
 }
 
-static int planet_get_pv(obj_t *obj, const observer_t *obs, double pv[2][4])
+static int planet_get_pvo(obj_t *obj, const observer_t *obs, double pvo[2][4])
 {
     planet_t *planet = (planet_t*)obj;
     planet_update_(planet, obs);
-    memcpy(pv, planet->obj.pvo, sizeof(planet->obj.pvo));
+    memcpy(pvo, planet->obj.pvo, sizeof(planet->obj.pvo));
     return 0;
 }
 
@@ -1203,7 +1203,7 @@ static obj_klass_t planet_klass = {
     .id = "planet",
     .model = "jpl_sso",
     .size = sizeof(planet_t),
-    .get_pv = planet_get_pv,
+    .get_pvo = planet_get_pvo,
     .get_info = planet_get_info,
     .update = planet_update,
     .get_designations = planet_get_designations,

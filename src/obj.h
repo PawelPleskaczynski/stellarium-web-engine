@@ -106,7 +106,7 @@ struct obj_klass
     // Various methods to manipulate objects of this class.
     int (*init)(obj_t *obj, json_value *args);
     void (*del)(obj_t *obj);
-    int (*get_pv)(obj_t *obj, const observer_t *obs, double pv[2][4]);
+    int (*get_pvo)(obj_t *obj, const observer_t *obs, double pvo[2][4]);
     int (*get_info)(obj_t *obj, const observer_t *obs, int info, void *out);
     int (*update)(obj_t *obj, const observer_t *obs, double dt);
     int (*render)(const obj_t *obj, const painter_t *painter);
@@ -319,7 +319,7 @@ int obj_render(const obj_t *obj, const painter_t *painter);
 int obj_update(obj_t *obj, observer_t *obs, double dt);
 
 
-int obj_get_pv(obj_t *obj, observer_t *obs, double pv[2][4]);
+int obj_get_pvo(obj_t *obj, observer_t *obs, double pvo[2][4]);
 
 int obj_get_info(obj_t *obj, observer_t *obs, int info, void *out);
 

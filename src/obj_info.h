@@ -71,7 +71,7 @@ const char *obj_info_type_str(int type);
     X(MORPHO,   morpho, STRING, 8), \
     X(PHASE,    phase,  FLOAT,  9), \
     X(RADIUS,   radius, RADIUS, 10), \
-    X(PV,       pv,     V4x2,   11), \
+    X(PVO,      pvo,    V4x2,   11), \
     X(POS,      pos,    V4,     12), \
 
 
