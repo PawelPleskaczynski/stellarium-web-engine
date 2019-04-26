@@ -164,7 +164,7 @@ static int comet_update(comet_t *comet, const observer_t *obs, double dt)
     return 0;
 }
 
-static int comet_get_info(obj_t *obj, const observer_t *obs, int info,
+static int comet_get_info(const obj_t *obj, const observer_t *obs, int info,
                           void *out)
 {
     comet_t *comet = (comet_t*)obj;

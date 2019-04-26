@@ -224,7 +224,8 @@ static int mplanet_update(mplanet_t *mp, const observer_t *obs)
 }
 
 
-static int mplanet_get_pvo(obj_t *obj, const observer_t *obs, double pvo[2][4])
+static int mplanet_get_pvo(const obj_t *obj, const observer_t *obs,
+                           double pvo[2][4])
 {
     mplanet_t *mp = (mplanet_t*)obj;
     mplanet_update(mp, obs);
@@ -232,7 +233,7 @@ static int mplanet_get_pvo(obj_t *obj, const observer_t *obs, double pvo[2][4])
     return 0;
 }
 
-static int mplanet_get_info(obj_t *obj, const observer_t *obs, int info,
+static int mplanet_get_info(const obj_t *obj, const observer_t *obs, int info,
                             void *out)
 {
     mplanet_t *mp = (mplanet_t*)obj;

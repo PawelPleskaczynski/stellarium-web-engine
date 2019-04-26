@@ -106,17 +106,18 @@ struct obj_klass
     // Various methods to manipulate objects of this class.
     int (*init)(obj_t *obj, json_value *args);
     void (*del)(obj_t *obj);
-    int (*get_pvo)(obj_t *obj, const observer_t *obs, double pvo[2][4]);
-    int (*get_info)(obj_t *obj, const observer_t *obs, int info, void *out);
+    int (*get_pvo)(const obj_t *obj, const observer_t *obs, double pvo[2][4]);
+    int (*get_info)(const obj_t *obj, const observer_t *obs, int info,
+                    void *out);
     int (*render)(const obj_t *obj, const painter_t *painter);
     int (*post_render)(const obj_t *obj, const painter_t *painter);
-    obj_t* (*clone)(const obj_t *obj);
     int (*render_pointer)(const obj_t *obj, const painter_t *painter);
     void (*get_2d_ellipse)(const obj_t *obj, const observer_t *obs,
                            const projection_t *proj,
                            double win_pos[2], double win_size[2],
                            double* win_angle);
 
+    // For modules objects.
     int (*on_mouse)(obj_t *obj, int id, int state, double x, double y);
 
     int (*update)(obj_t *module, double dt);
@@ -132,7 +133,7 @@ struct obj_klass
 
     void (*gui)(obj_t *obj, int location);
 
-    // For modules objects.
+    obj_t* (*clone)(const obj_t *obj);
     // List all the sky objects children from this module.
     int (*list)(const obj_t *obj, observer_t *obs, double max_mag,
                 uint64_t hint, void *user,

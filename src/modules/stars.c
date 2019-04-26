@@ -182,7 +182,7 @@ static int star_update(obj_t *obj, const observer_t *obs, double dt)
 */
 
 // Return position and velocity in ICRF with origin on observer (AU).
-static int star_get_pvo(obj_t *obj, const observer_t *obs,
+static int star_get_pvo(const obj_t *obj, const observer_t *obs,
                         double pvo[2][4])
 {
     star_data_t *s = &((star_t*)obj)->data;
@@ -205,7 +205,7 @@ static int star_get_pvo(obj_t *obj, const observer_t *obs,
     return 0;
 }
 
-static int star_get_info(obj_t *obj, const observer_t *obs, int info,
+static int star_get_info(const obj_t *obj, const observer_t *obs, int info,
                          void *out)
 {
     star_t *star = (star_t*)obj;

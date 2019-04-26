@@ -132,7 +132,7 @@ static int circle_update(obj_t *obj, const observer_t *obs, double dt)
 }
 */
 
-static int circle_get_pvo(obj_t *obj, const observer_t *obs,
+static int circle_get_pvo(const obj_t *obj, const observer_t *obs,
                           double pvo[2][4])
 {
     circle_t *circle = (circle_t*)obj;

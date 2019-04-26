@@ -460,7 +460,8 @@ static int planet_update_(planet_t *planet, const observer_t *obs)
     return 0;
 }
 
-static int planet_get_pvo(obj_t *obj, const observer_t *obs, double pvo[2][4])
+static int planet_get_pvo(const obj_t *obj, const observer_t *obs,
+                          double pvo[2][4])
 {
     planet_t *planet = (planet_t*)obj;
     planet_update_(planet, obs);
@@ -468,7 +469,7 @@ static int planet_get_pvo(obj_t *obj, const observer_t *obs, double pvo[2][4])
     return 0;
 }
 
-static int planet_get_info(obj_t *obj, const observer_t *obs, int info,
+static int planet_get_info(const obj_t *obj, const observer_t *obs, int info,
                            void *out)
 {
     planet_t *planet = (planet_t*)obj;

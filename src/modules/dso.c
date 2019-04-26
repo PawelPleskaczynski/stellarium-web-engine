@@ -124,7 +124,7 @@ static dso_t *dso_create(const dso_data_t *data)
     return dso;
 }
 
-static int dso_get_pvo(obj_t *obj, const observer_t *obs,
+static int dso_get_pvo(const obj_t *obj, const observer_t *obs,
                        double pvo[2][4])
 {
     dso_t *dso = (dso_t*)obj;
@@ -134,7 +134,7 @@ static int dso_get_pvo(obj_t *obj, const observer_t *obs,
     return 0;
 }
 
-static int dso_get_info(obj_t *obj, const observer_t *obs, int info,
+static int dso_get_info(const obj_t *obj, const observer_t *obs, int info,
                         void *out)
 {
     dso_t *dso = (dso_t*)obj;
