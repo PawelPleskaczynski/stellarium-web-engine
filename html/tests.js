@@ -79,7 +79,8 @@ var testListener = function(stel) {
 var testCalendar = function(stel) {
   var gotMoonMars = false;
   var onEvent = function(ev) {
-    if (ev.o2 && ev.o1.name == 'Moon' && ev.o2.name == 'Mars') {
+    if (ev.o2 && ev.o1.names().includes('NAME Moon') &&
+                 ev.o2.names().includes('NAME Mars')) {
       assert(ev.time);
       assert(ev.type);
       assert(ev.desc);
