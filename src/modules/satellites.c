@@ -175,7 +175,7 @@ static bool load_data(satellites_t *sats)
     return true;
 }
 
-static int satellites_update(obj_t *obj, const observer_t *obs, double dt)
+static int satellites_update(obj_t *obj, double dt)
 {
     PROFILE(satellites_update, 0);
     satellites_t *sats = (satellites_t*)obj;

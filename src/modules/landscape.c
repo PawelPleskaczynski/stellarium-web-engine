@@ -56,7 +56,7 @@ static int landscape_init(obj_t *obj, json_value *args)
     return 0;
 }
 
-static int landscape_update(obj_t *obj, const observer_t *obs, double dt)
+static int landscape_update(obj_t *obj, double dt)
 {
     landscape_t *ls = (landscape_t*)obj;
     const char *data;
@@ -231,12 +231,12 @@ static int landscapes_init(obj_t *obj, json_value *args)
     return 0;
 }
 
-static int landscapes_update(obj_t *obj, const observer_t *obs, double dt)
+static int landscapes_update(obj_t *obj, double dt)
 {
     landscapes_t *lss = (landscapes_t*)obj;
     obj_t *ls;
     MODULE_ITER((obj_t*)lss, ls, "landscape") {
-        landscape_update(ls, obs, dt);
+        landscape_update(ls, dt);
     }
     fader_update(&lss->visible, dt);
     fader_update(&lss->fog_visible, dt);

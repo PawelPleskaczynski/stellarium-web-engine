@@ -60,7 +60,7 @@ static int meteor_init(obj_t *obj, json_value *args)
     return 0;
 }
 
-static int meteor_update(obj_t *obj, const observer_t *obs, double dt)
+static int meteor_update(obj_t *obj, double dt)
 {
     meteor_t *m = (meteor_t*)obj;
     vec3_addk(m->pvo[0], m->pvo[1], dt, m->pvo[0]);
@@ -140,7 +140,7 @@ static int meteors_init(obj_t *obj, json_value *args)
     return 0;
 }
 
-static int meteors_update(obj_t *obj, const observer_t *obs, double dt)
+static int meteors_update(obj_t *obj, double dt)
 {
     PROFILE(meterors_update, 0);
     meteors_t *ms = (meteors_t*)obj;
@@ -159,7 +159,7 @@ static int meteors_update(obj_t *obj, const observer_t *obs, double dt)
 
     DL_FOREACH_SAFE(obj->children, child, tmp) {
         m = (meteor_t*)child;
-        meteor_update(child, obs, dt);
+        meteor_update(child, dt);
         if (m->time > m->duration)
             module_remove(obj, child);
     }

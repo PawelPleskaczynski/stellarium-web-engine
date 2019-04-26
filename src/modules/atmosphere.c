@@ -192,7 +192,7 @@ static float compute_lum(void *user, const float pos[3])
     return lum;
 }
 
-static int atmosphere_update(obj_t *obj, const observer_t *obs, double dt)
+static int atmosphere_update(obj_t *obj, double dt)
 {
     atmosphere_t *atm = (atmosphere_t*)obj;
     return fader_update(&atm->visible, dt);

@@ -79,7 +79,6 @@ typedef struct obj_klass obj_klass_t;
  * Methods:
  *   init   - Called when a new instance is created.
  *   del    - Called when an instance is destroyed.
- *   update - Update the object for a new observer.
  *   render - Render the object.
  *   post_render - Called after all modules are rendered, but with a still
  *                 valid OpenGL context. Useful for e.g. GUI rendering.
@@ -93,6 +92,7 @@ typedef struct obj_klass obj_klass_t;
  *                  created in the right order.
  *
  * Module Methods:
+ *   update  - Update the module.
  *   list    - List all the sky objects children from this module.
  *   get_render_order - Return the render order.
  *   on_mouse   - Called when there is a mouse event.
@@ -119,7 +119,7 @@ struct obj_klass
 
     int (*on_mouse)(obj_t *obj, int id, int state, double x, double y);
 
-    int (*update)(obj_t *module, const observer_t *obs, double dt);
+    int (*update)(obj_t *module, double dt);
     // Find a sky object given an id.
     obj_t *(*get)(const obj_t *obj, const char *id, int flags);
     // Find a sky object given an oid

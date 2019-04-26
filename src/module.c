@@ -12,14 +12,11 @@
 static void (*g_listener)(obj_t *module, const char *attr) = NULL;
 
 EMSCRIPTEN_KEEPALIVE
-int module_update(obj_t *module, observer_t *obs, double dt)
+int module_update(obj_t *module, double dt)
 {
-    assert(!obs || obs->hash != 0);
     assert(module->klass->flags & OBJ_MODULE);
     if (!module->klass->update) return 0;
-    observer_update(obs, true);
-    assert(obs->astrom.em);
-    return module->klass->update(module, obs, dt);
+    return module->klass->update(module, dt);
 }
 
 

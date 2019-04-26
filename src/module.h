@@ -1,14 +1,13 @@
 
 
 /*
- * Function: obj_update
- * Update the internal state of the object.
+ * Function: module_update
+ * Update the module.
  *
  * Parameters:
- *   obs - The observer.
  *   dt  - User delta time (used for example for fading effects).
  */
-int module_update(obj_t *module, observer_t *obs, double dt);
+int module_update(obj_t *module, double dt);
 
 /*
  * Function: module_list_obj

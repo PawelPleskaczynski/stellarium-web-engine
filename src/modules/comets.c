@@ -107,9 +107,8 @@ static void load_data(comets_t *comets, const char *data)
     LOG_I("Parsed %d comets", nb);
 }
 
-static int comet_update(obj_t *obj, const observer_t *obs, double dt)
+static int comet_update(comet_t *comet, const observer_t *obs, double dt)
 {
-    comet_t *comet = (comet_t*)obj;
     double a, p, n, ph[2][3], pv[2][3], or, sr, b, v, w, r, o, u, i;
     const double K = 0.01720209895; // AU, day
 
@@ -169,7 +168,7 @@ static int comet_get_info(obj_t *obj, const observer_t *obs, int info,
                           void *out)
 {
     comet_t *comet = (comet_t*)obj;
-    comet_update(obj, obs, 0);
+    comet_update(comet, obs, 0);
     switch (info) {
     case INFO_VMAG:
         *(double*)out = comet->vmag;
@@ -249,7 +248,7 @@ static bool range_contains(int range_start, int range_size, int nb, int i)
     return i > range_start && i < range_start + range_size;
 }
 
-static int comets_update(obj_t *obj, const observer_t *obs, double dt)
+static int comets_update(obj_t *obj, double dt)
 {
     PROFILE(comets_update, 0);
     int size, code;
@@ -342,7 +341,6 @@ static obj_klass_t comet_klass = {
     .id         = "mpc_comet",
     .size       = sizeof(comet_t),
     .get_info   = comet_get_info,
-    .update     = comet_update,
     .render     = comet_render,
     .get_designations = comet_get_designations,
 };

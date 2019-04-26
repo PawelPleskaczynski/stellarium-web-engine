@@ -598,7 +598,7 @@ static int render_visitor(int order, int pix, void *user)
     return 1;
 }
 
-static int dsos_update(obj_t *obj, const observer_t *obs, double dt)
+static int dsos_update(obj_t *obj, double dt)
 {
     dsos_t *dsos = (dsos_t*)obj;
     return fader_update(&dsos->visible, dt);

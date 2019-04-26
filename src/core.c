@@ -421,7 +421,7 @@ int core_update(double dt)
     DL_SORT(core->obj.children, modules_sort_cmp);
     DL_FOREACH(core->obj.children, module) {
         if (module->klass->update) {
-            r = module->klass->update(module, core->observer, dt);
+            r = module->klass->update(module, dt);
             if (r < 0) LOG_E("Error updating module '%s'", module->id);
         }
     }
