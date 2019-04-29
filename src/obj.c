@@ -208,7 +208,8 @@ char *obj_get_info_json(const obj_t *obj, observer_t *obs, int info)
     } v;
     char *ret = NULL;
 
-    obj_get_info(obj, obs, info, &v);
+    r = obj_get_info(obj, obs, info, &v);
+    if (r) return NULL;
 
     switch (type) {
     case TYPE_FLOAT:

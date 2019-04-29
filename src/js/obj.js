@@ -30,7 +30,7 @@ Module.afterInit(function() {
   // Get all obj info constants.
   (function() {
     var callback = Module.addFunction(function(info, name) {
-      var name = Module.Pointer_stringify(name)
+      var name = Module.UTF8ToString(name)
       Module['INFO_' + name] = info
     })
     Module._obj_info_list(callback)
@@ -91,8 +91,23 @@ Module.afterInit(function() {
   }
 
   SweObj.prototype.get = function(info, obs) {
+
+    // Support info as string.
+    if ((typeof info) == 'string') {
+      var info_int = Module['INFO_' + info]
+      if (info_int === undefined) {
+        console.log('No such info: ' + info)
+        return undefined
+      }
+      info = info_int
+    }
+
+    if (obs === undefined)
+      obs = Module.observer
     var cret = obj_get_info_json(this.v, obs.v, info)
-    var ret = Module.Pointer_stringify(cret)
+    if (cret === 0)
+      return undefined
+    var ret = Module.UTF8ToString(cret)
     Module._free(cret)
     return JSON.parse(ret)
   }

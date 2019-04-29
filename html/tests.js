@@ -44,6 +44,25 @@ var testBasic = function(stel) {
   assert(!stel.core.selection);
 };
 
+var testInfo = function(stel) {
+  {
+    let jupiter = stel.getObj('Jupiter');
+    assert(jupiter);
+    let vmag = jupiter.get('VMAG');
+    assert(typeof vmag == 'number');
+    let phase = jupiter.get('PHASE');
+    assert(typeof phase == 'number');
+    let radius = jupiter.get('RADIUS');
+    assert(typeof radius == 'number');
+  }
+
+  {
+    let polaris = stel.getObj('HIP 11767');
+    assert(polaris);
+    let radius = polaris.get('RADIUS');
+  }
+}
+
 var testIds = function(stel) {
   var o1 = stel.getObj('HIP 11767');
   assert(o1);
@@ -232,6 +251,7 @@ require('./static/js/stellarium-web-engine.js')({
   onReady: function(stel) {
     testCore(stel);
     testBasic(stel);
+    testInfo(stel);
     testIds(stel);
     testSearch(stel);
     testCloneObserver(stel);
