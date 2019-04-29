@@ -299,7 +299,7 @@ static void info_widget(obj_t *obj)
     obj_get_designations(obj, NULL, on_designation);
     gui_separator();
 
-    obj_get_info(obj, obs, INFO_POS, icrs);
+    obj_get_info(obj, obs, INFO_RADEC, icrs);
     convert_framev4(NULL, FRAME_ICRF, FRAME_CIRS, icrs, cirs);
     convert_framev4(NULL, FRAME_ICRF, FRAME_OBSERVED, icrs, observed);
     eraC2s(cirs, &ra, &dec);
