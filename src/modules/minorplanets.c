@@ -254,6 +254,7 @@ static int mplanet_render(const obj_t *obj, const painter_t *painter)
     point_t point;
     const bool selected = core->selection && obj->oid == core->selection->oid;
 
+    mplanet_update(mplanet, painter->obs);
     vmag = mplanet->vmag;
     if (vmag > painter->stars_limit_mag) return 0;
     obj_get_pvo(obj, painter->obs, pvo);
