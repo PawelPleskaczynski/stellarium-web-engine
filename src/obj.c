@@ -192,13 +192,19 @@ int obj_get_info(obj_t *obj, observer_t *obs, int info,
 }
 
 EMSCRIPTEN_KEEPALIVE
-char *obj_get_info_json(const obj_t *obj, observer_t *obs, const char *info_s)
+char *obj_get_info_json(const obj_t *obj, observer_t *obs, int info)
 {
-    int info = obj_info_from_str(info_s);
     int type = info % 16;
     int r = 0;
     union {
+        bool b;
+        int d;
+        double f;
+        double v2[2];
+        double v3[3];
+        double v4[4];
         double v4x2[2][4];
+        const char *s_ptr;
     } v;
     char *ret = NULL;
 
@@ -206,20 +212,25 @@ char *obj_get_info_json(const obj_t *obj, observer_t *obs, const char *info_s)
 
     switch (type) {
     case TYPE_FLOAT:
+        r = asprintf(&ret, "%g", v.f);
         break;
     case TYPE_INT:
+        r = asprintf(&ret, "%d", v.d);
         break;
     case TYPE_BOOL:
+        r = asprintf(&ret, "%s", v.b ? "true" : "fasle");
         break;
     case TYPE_STRING:
-        break;
-    case TYPE_PTR:
+        r = asprintf(&ret, "%s", v.s_ptr);
         break;
     case TYPE_V2:
+        r = asprintf(&ret, "[%g, %g]", VEC2_SPLIT(v.v2));
         break;
     case TYPE_V3:
+        r = asprintf(&ret, "[%g, %g, %g]", VEC3_SPLIT(v.v3));
         break;
     case TYPE_V4:
+        r = asprintf(&ret, "[%g, %g, %g, %g]", VEC4_SPLIT(v.v4));
         break;
     case TYPE_V4X2:
         r = asprintf(&ret, "[[%g, %g, %g, %g], [%g, %g, %g, %g]]",
@@ -519,22 +530,12 @@ const char *obj_info_type_str(int type)
     return names[type];
 }
 
-int obj_info_from_str(const char *str)
+EMSCRIPTEN_KEEPALIVE
+void obj_info_list(void (*f)(int info, const char *name))
 {
-    struct {
-        int info;
-        const char *name;
-    } map[] = {
-#define X(name, lower, ...) {INFO_##name, #name},
-        ALL_INFO(X)
+#define X(name, ...) f(INFO_##name, #name);
+    ALL_INFO(X)
 #undef X
-    };
-
-    int i;
-    for (i = 0; i < ARRAY_SIZE(map); i++) {
-        if (strcasecmp(str, map[i].name) == 0) return map[i].info;
-    }
-    return 0;
 }
 
 /******** TESTS ***********************************************************/

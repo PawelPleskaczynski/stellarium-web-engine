@@ -53,7 +53,8 @@ enum {
 };
 
 const char *obj_info_type_str(int type);
-int obj_info_from_str(const char *str);
+
+void obj_info_list(void (*f)(int info, const char *name));
 
 #undef TYPE
 

@@ -28,7 +28,7 @@ var testBasic = function(stel) {
   assert(JSON.stringify(stel.observer.azalt) === JSON.stringify([0, 1, 0]));
   // Test sun pos.
   var sun = stel.getObj("Sun");
-  var pvo = sun.get('pvo', stel.observer);
+  var pvo = sun.get(stel.INFO_PVO, stel.observer);
   var cirs = stel.convertFrame(stel.observer, 'ICRF', 'CIRS', pvo[0]);
   var ra  = stel.anp(stel.c2s(cirs)[0]);
   var dec = stel.anpm(stel.c2s(cirs)[1]);
@@ -219,7 +219,7 @@ var testPositions = function(stel) {
   obs.longitude = -84.39 * stel.D2R;
   obs.latitude = 33.75 * stel.D2R;
   var o = stel.getObj('HIP 11767');
-  var icrs = o.get('pvo', obs)[0];
+  var icrs = o.get(stel.INFO_PVO, obs)[0];
   var cirs = stel.convertFrame(obs, 'ICRF', 'CIRS', icrs);
   var a_ra  = stel.anp(stel.c2s(icrs)[0]);
   var a_dec = stel.anpm(stel.c2s(icrs)[1]);

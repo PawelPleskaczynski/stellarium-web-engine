@@ -25,7 +25,17 @@ Module.afterInit(function() {
     ['number', 'string']);
   var core_get_module = Module.cwrap('core_get_module', 'number', ['string']);
   var obj_get_info_json = Module.cwrap('obj_get_info_json', 'number',
-    ['number', 'number', 'string']);
+    ['number', 'number', 'number']);
+
+  // Get all obj info constants.
+  (function() {
+    var callback = Module.addFunction(function(info, name) {
+      var name = Module.Pointer_stringify(name)
+      Module['INFO_' + name] = info
+    })
+    Module._obj_info_list(callback)
+    Module.removeFunction(callback)
+  })();
 
   // List of {obj, attr, callback}
   var g_listeners = [];
