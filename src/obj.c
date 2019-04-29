@@ -172,7 +172,7 @@ int obj_get_info(obj_t *obj, observer_t *obs, int info,
         return 0;
     case INFO_PVO:
         return obj_get_pvo(obj, obs, out);
-    case INFO_POS: // First component of the PVO info.
+    case INFO_RADEC: // First component of the PVO info.
         obj_get_info(obj, obs, INFO_PVO, pvo);
         memcpy(out, pvo[0], sizeof(pvo[0]));
         return 0;
@@ -199,6 +199,7 @@ char *obj_get_info_json(const obj_t *obj, observer_t *obs, int info)
     union {
         bool b;
         int d;
+        char otype[4];
         double f;
         double v2[2];
         double v3[3];
@@ -213,7 +214,7 @@ char *obj_get_info_json(const obj_t *obj, observer_t *obs, int info)
 
     switch (type) {
     case TYPE_FLOAT:
-        r = asprintf(&ret, "%g", v.f);
+        r = asprintf(&ret, "%.12f", v.f);
         break;
     case TYPE_INT:
         r = asprintf(&ret, "%d", v.d);
@@ -221,20 +222,24 @@ char *obj_get_info_json(const obj_t *obj, observer_t *obs, int info)
     case TYPE_BOOL:
         r = asprintf(&ret, "%s", v.b ? "true" : "fasle");
         break;
+    case TYPE_OTYPE:
+        r = asprintf(&ret, "%.4s", v.otype);
+        break;
     case TYPE_STRING:
         r = asprintf(&ret, "%s", v.s_ptr);
         break;
     case TYPE_V2:
-        r = asprintf(&ret, "[%g, %g]", VEC2_SPLIT(v.v2));
+        r = asprintf(&ret, "[%.12f, %.12f]", VEC2_SPLIT(v.v2));
         break;
     case TYPE_V3:
-        r = asprintf(&ret, "[%g, %g, %g]", VEC3_SPLIT(v.v3));
+        r = asprintf(&ret, "[%.12f, %.12f, %.12f]", VEC3_SPLIT(v.v3));
         break;
     case TYPE_V4:
-        r = asprintf(&ret, "[%g, %g, %g, %g]", VEC4_SPLIT(v.v4));
+        r = asprintf(&ret, "[%.12f, %.12f, %.12f, %.12f]", VEC4_SPLIT(v.v4));
         break;
     case TYPE_V4X2:
-        r = asprintf(&ret, "[[%g, %g, %g, %g], [%g, %g, %g, %g]]",
+        r = asprintf(&ret, "[[%.12f, %.12f, %.12f, %.12f],"
+                            "[%.12f, %.12f, %.12f, %.12f]]",
                      VEC4_SPLIT(v.v4x2[0]), VEC4_SPLIT(v.v4x2[1]));
         break;
     default:
@@ -521,6 +526,14 @@ void obj_get_2d_ellipse(obj_t *obj,  const observer_t *obs,
     *win_angle = 0;
 }
 
+const char *obj_info_str(int info)
+{
+#define X(name, ...) if (INFO_##name == info) return #name;
+    ALL_INFO(X)
+#undef X
+    return NULL;
+}
+
 const char *obj_info_type_str(int type)
 {
     const char *names[] = {
@@ -537,6 +550,15 @@ void obj_info_list(void (*f)(int info, const char *name))
 #define X(name, ...) f(INFO_##name, #name);
     ALL_INFO(X)
 #undef X
+}
+
+int obj_info_from_str(const char *str)
+{
+#define X(name, ...) if (strcasecmp(str, #name) == 0) return INFO_##name;
+    ALL_INFO(X)
+#undef X
+    LOG_E("No such info name: %s", str);
+    return -1;
 }
 
 /******** TESTS ***********************************************************/

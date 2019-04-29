@@ -299,6 +299,7 @@ int obj_render(const obj_t *obj, const painter_t *painter);
 int obj_get_pvo(obj_t *obj, observer_t *obs, double pvo[2][4]);
 
 int obj_get_info(obj_t *obj, observer_t *obs, int info, void *out);
+char *obj_get_info_json(const obj_t *obj, observer_t *obs, int info);
 
 /*
  * Function: obj_get_pos_observed
